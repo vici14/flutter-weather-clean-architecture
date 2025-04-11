@@ -1,5 +1,7 @@
-import 'package:http/http.dart' as http;
-
+import 'api_client.dart';
+import 'interceptors/location_interceptor.dart';
+import 'interceptors/weather_interceptor.dart';
+import 'interceptors/logging_interceptor.dart';
 import 'services/location_service.dart';
 import 'services/weather_service.dart';
 
@@ -11,13 +13,7 @@ class ServiceManager {
 
   ServiceManager._internal();
 
-  /// HTTP client shared across all services
-  final http.Client _client = http.Client();
-
-  /// Lazy-initialized location service
   LocationService? _locationService;
-
-  /// Lazy-initialized weather service
   WeatherService? _weatherService;
 
   /// Initialize all services with required configurations
@@ -25,14 +21,28 @@ class ServiceManager {
     required String locationApiKey,
     required String weatherApiKey,
   }) {
+    final locationClient = ApiClient(
+      interceptors: [
+        LoggingInterceptor(),
+        LocationInterceptor(),
+      ],
+    );
+
+    final weatherClient = ApiClient(
+      interceptors: [
+        LoggingInterceptor(),
+        WeatherInterceptor(),
+      ],
+    );
+
     _locationService = LocationService(
       apiKey: locationApiKey,
-      client: _client,
+      client: locationClient,
     );
 
     _weatherService = WeatherService(
       apiKey: weatherApiKey,
-      client: _client,
+      client: weatherClient,
     );
   }
 
@@ -56,6 +66,7 @@ class ServiceManager {
 
   /// Dispose all resources
   void dispose() {
-    _client.close();
+    _locationService?.client.close();
+    _weatherService?.client.close();
   }
 }

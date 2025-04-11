@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../api_client.dart';
 
 /// Result class for weather service responses
 class WeatherResult<T> {
@@ -169,11 +169,13 @@ class WeatherCondition {
 class WeatherService {
   final String _baseUrl = 'https://api.openweathermap.org/data/3.0';
   final String _apiKey;
-  final http.Client _client;
+  final ApiClient _client;
 
-  WeatherService({required String apiKey, http.Client? client})
+  WeatherService({required String apiKey, ApiClient? client})
       : _apiKey = apiKey,
-        _client = client ?? http.Client();
+        _client = client ?? ApiClient();
+
+  ApiClient get client => _client;
 
   /// Get weather forecast for a location
   Future<WeatherResult<WeatherForecast>> getWeatherForecast({
@@ -183,12 +185,17 @@ class WeatherService {
   }) async {
     try {
       final response = await _client.get(
-        Uri.parse(
-            '$_baseUrl/onecall?lat=$lat&lon=$lon&units=$units&appid=$_apiKey'),
+        '$_baseUrl/onecall',
+        queryParameters: {
+          'lat': lat,
+          'lon': lon,
+          'units': units,
+          'appid': _apiKey,
+        },
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = response.data;
         return WeatherResult.success(WeatherForecast.fromJson(data));
       } else {
         return WeatherResult.failure(Exception(

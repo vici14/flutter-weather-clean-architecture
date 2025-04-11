@@ -1,6 +1,5 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-
+import '../api_client.dart';
 import '../models/city.dart';
 import '../models/country.dart';
 import '../models/state.dart';
@@ -10,11 +9,13 @@ import '../repositories/i_location_repository.dart';
 class LocationService {
   final String _baseUrl = 'https://api.countrystatecity.in/v1';
   final String _apiKey;
-  final http.Client _client;
+  final ApiClient _client;
 
-  LocationService({required String apiKey, http.Client? client})
+  LocationService({required String apiKey, ApiClient? client})
       : _apiKey = apiKey,
-        _client = client ?? http.Client();
+        _client = client ?? ApiClient();
+
+  ApiClient get client => _client;
 
   Map<String, String> get _headers => {
         'X-CSCAPI-KEY': _apiKey,
@@ -25,12 +26,12 @@ class LocationService {
   Future<Result<List<Country>>> getAllCountries() async {
     try {
       final response = await _client.get(
-        Uri.parse('$_baseUrl/countries'),
+        '$_baseUrl/countries',
         headers: _headers,
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+        final List<dynamic> data = response.data;
         final countries = data.map((json) => Country.fromJson(json)).toList();
         return Result.success(countries);
       } else {
@@ -46,12 +47,12 @@ class LocationService {
   Future<Result<Country>> getCountryDetails(String iso2) async {
     try {
       final response = await _client.get(
-        Uri.parse('$_baseUrl/countries/$iso2'),
+        '$_baseUrl/countries/$iso2',
         headers: _headers,
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = response.data;
         return Result.success(Country.fromJson(data));
       } else {
         return Result.failure(Exception(
@@ -66,12 +67,12 @@ class LocationService {
   Future<Result<List<State>>> getAllStates() async {
     try {
       final response = await _client.get(
-        Uri.parse('$_baseUrl/states'),
+        '$_baseUrl/states',
         headers: _headers,
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+        final List<dynamic> data = response.data;
         final states = data.map((json) => State.fromJson(json)).toList();
         return Result.success(states);
       } else {
@@ -87,12 +88,12 @@ class LocationService {
   Future<Result<List<State>>> getStatesByCountry(String countryIso2) async {
     try {
       final response = await _client.get(
-        Uri.parse('$_baseUrl/countries/$countryIso2/states'),
+        '$_baseUrl/countries/$countryIso2/states',
         headers: _headers,
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+        final List<dynamic> data = response.data;
         final states = data.map((json) => State.fromJson(json)).toList();
         return Result.success(states);
       } else {
@@ -109,12 +110,12 @@ class LocationService {
       String countryIso2, String stateIso2) async {
     try {
       final response = await _client.get(
-        Uri.parse('$_baseUrl/countries/$countryIso2/states/$stateIso2'),
+        '$_baseUrl/countries/$countryIso2/states/$stateIso2',
         headers: _headers,
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = response.data;
         return Result.success(State.fromJson(data));
       } else {
         return Result.failure(
@@ -130,12 +131,12 @@ class LocationService {
       String countryIso2, String stateIso2) async {
     try {
       final response = await _client.get(
-        Uri.parse('$_baseUrl/countries/$countryIso2/states/$stateIso2/cities'),
+        '$_baseUrl/countries/$countryIso2/states/$stateIso2/cities',
         headers: _headers,
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+        final List<dynamic> data = response.data;
         final cities = data.map((json) => City.fromJson(json)).toList();
         return Result.success(cities);
       } else {
@@ -151,12 +152,12 @@ class LocationService {
   Future<Result<List<City>>> getCitiesByCountry(String countryIso2) async {
     try {
       final response = await _client.get(
-        Uri.parse('$_baseUrl/countries/$countryIso2/cities'),
+        '$_baseUrl/countries/$countryIso2/cities',
         headers: _headers,
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+        final List<dynamic> data = response.data;
         final cities = data.map((json) => City.fromJson(json)).toList();
         return Result.success(cities);
       } else {
