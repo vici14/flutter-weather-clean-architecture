@@ -1,12 +1,12 @@
-import '../../core/service_manager.dart';
+import '../service_manager.dart';
 import '../services/weather_service.dart';
 import 'i_weather_repository.dart';
 
 class WeatherRepository implements IWeatherRepository {
   final ServiceManager _serviceManager;
 
-  WeatherRepository({ServiceManager? serviceManager})
-      : _serviceManager = serviceManager ?? ServiceManager();
+  WeatherRepository(ServiceManager serviceManager)
+      : _serviceManager = serviceManager;
 
   @override
   Future<WeatherResult<WeatherForecast>> getWeatherForecast({
@@ -15,6 +15,19 @@ class WeatherRepository implements IWeatherRepository {
     String units = 'metric',
   }) {
     return _serviceManager.weatherService.getWeatherForecast(
+      lat: lat,
+      lon: lon,
+      units: units,
+    );
+  }
+
+  @override
+  Future<WeatherResult<List<DailyForecast>>> getFourDaysForecast({
+    required double lat,
+    required double lon,
+    String units = 'metric',
+  }) {
+    return _serviceManager.weatherService.getFourDaysForecast(
       lat: lat,
       lon: lon,
       units: units,
