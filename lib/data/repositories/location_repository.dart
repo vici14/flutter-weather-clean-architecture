@@ -1,4 +1,4 @@
-import '../../core/service_manager.dart';
+import '../service_manager.dart';
 import '../models/city.dart';
 import '../models/country.dart';
 import '../models/state.dart';
@@ -7,8 +7,8 @@ import 'i_location_repository.dart';
 class LocationRepository implements ILocationRepository {
   final ServiceManager _serviceManager;
 
-  LocationRepository({ServiceManager? serviceManager})
-      : _serviceManager = serviceManager ?? ServiceManager();
+  LocationRepository(ServiceManager serviceManager)
+      : _serviceManager = serviceManager ;
 
   @override
   Future<Result<List<Country>>> getAllCountries() {
