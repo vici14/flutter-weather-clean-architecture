@@ -6,7 +6,7 @@ import '../../../core/base/bloc/base_event.dart';
 
 abstract class LocationEvent extends BaseEvent {}
 
-class LoadLocationsEvent extends LocationEvent {}
+class GetCountriesEvent extends LocationEvent {}
 
 class LoadStatesEvent extends LocationEvent {
   final String countryIso2;

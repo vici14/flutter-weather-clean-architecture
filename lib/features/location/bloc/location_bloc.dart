@@ -14,7 +14,7 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
   final ILocationRepository _locationRepository;
 
   LocationBloc(this._locationRepository) : super(state: const LocationState()) {
-    on<LoadLocationsEvent>(_onLoadLocations);
+    on<GetCountriesEvent>(_onGetCountries);
     on<LoadStatesEvent>(_onLoadStates);
     on<LoadCitiesEvent>(_onLoadCities);
     on<SearchLocationsEvent>(_onSearchLocations);
@@ -24,8 +24,8 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
     on<ClearSelectionEvent>(_onClearSelection);
   }
 
-  Future<void> _onLoadLocations(
-    LoadLocationsEvent event,
+  Future<void> _onGetCountries(
+    GetCountriesEvent event,
     Emitter<LocationState> emit,
   ) async {
     emit(state.copyWith(
@@ -251,7 +251,7 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
   }
 
   void loadCountries() {
-    add(LoadLocationsEvent());
+    add(GetCountriesEvent());
   }
 
   void clearSelections({
