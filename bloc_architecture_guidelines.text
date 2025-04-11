@@ -1,0 +1,194 @@
+# Bloc Architecture Implementation Guidelines
+
+## 1. Base Structure
+
+The architecture follows a three-tier pattern:
+- **Base Event**: Simple marker interface for all events
+- **Base State**: Common state properties and behavior
+- **Base Bloc**: Abstract class extending Flutter's Bloc
+
+## 2. Events Implementation
+
+Events should:
+- Extend `BaseEvent` abstract class
+- Be immutable
+- Contain only necessary data for the event
+- Follow naming convention: `{Action}{Feature}Event`
+
+Example:
+```dart
+abstract class LocationEvent extends BaseEvent {}
+
+class LoadLocationsEvent extends LocationEvent {}
+
+class SearchLocationsEvent extends LocationEvent {
+  final String query;
+  
+  SearchLocationsEvent(this.query);
+}
+```
+
+## 3. State Implementation
+
+States should:
+- Extend `BaseBlocState` abstract class
+- Include all feature-specific properties
+- Use `LoadingState<T>` for each process/operation rather than global `isLoading` flag
+- Override `copyWith` for immutable state updates
+- Override `props` for proper equality comparison
+- Be immutable
+
+Example:
+```dart
+class LocationState extends BaseBlocState {
+  final LoadingState<List<Location>> locationsLoadingState;
+  final LoadingState<List<Location>> searchLoadingState;
+  final List<Location> filteredLocations;
+  final String query;
+
+  const LocationState({
+    super.timeStamp = 1,
+    super.baseError = '',
+    this.locationsLoadingState = const LoadingState(),
+    this.searchLoadingState = const LoadingState(),
+    this.filteredLocations = const [],
+    this.query = '',
+  });
+
+  LocationState copyWith({
+    int? timeStamp,
+    String? baseError,
+    LoadingState<List<Location>>? locationsLoadingState,
+    LoadingState<List<Location>>? searchLoadingState,
+    List<Location>? filteredLocations,
+    String? query,
+  }) {
+    return LocationState(
+      timeStamp: timeStamp ?? this.timeStamp,
+      baseError: baseError ?? this.baseError,
+      locationsLoadingState: locationsLoadingState ?? this.locationsLoadingState,
+      searchLoadingState: searchLoadingState ?? this.searchLoadingState,
+      filteredLocations: filteredLocations ?? this.filteredLocations,
+      query: query ?? this.query,
+    );
+  }
+
+  @override
+  List<Object> get props => 
+      [timeStamp, locationsLoadingState, searchLoadingState, filteredLocations, query];
+}
+```
+
+## 4. Bloc Implementation
+
+Blocs should:
+- Extend `BaseBloc<YourEvent, YourState>`
+- Receive dependencies via constructor injection
+- Register event handlers in constructor
+- Implement private methods for event handling
+- Has public methods that add events for convenience
+- Use LoadingState to manage loading state for each operation
+
+Example:
+```dart
+class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
+  final ILocationRepository _locationRepository;
+
+  LocationBloc(this._locationRepository) : super(state: const LocationState()) {
+    on<LoadLocationsEvent>(_onLoadLocations);
+    on<SearchLocationsEvent>(_onSearchLocations);
+    on<CountrySelectedEvent>(_onCountrySelected);
+  }
+
+  Future<void> _onLoadLocations(
+    LoadLocationsEvent event,
+    Emitter<LocationState> emit,
+  ) async {
+    // Update to loading state
+    emit(state.copyWith(
+      locationsLoadingState: LoadingState.loading(),
+      timeStamp: DateTime.now().millisecondsSinceEpoch,
+    ));
+    
+    try {
+      final result = await _locationRepository.getAllCountries();
+      
+      if (result.isSuccess && result.data != null) {
+        // Transform data
+        final locations = transformData(result.data!);
+
+        // Update with success state
+        emit(state.copyWith(
+          locationsLoadingState: LoadingState<List<Location>>(
+            isLoading: false,
+            isLoadedSuccess: true,
+            value: locations,
+          ),
+          timeStamp: DateTime.now().millisecondsSinceEpoch,
+        ));
+      } else {
+        // Update with error state
+        emit(state.copyWith(
+          locationsLoadingState: LoadingState.error(
+            AppError(message: 'Failed to load locations: ${result.error}')
+          ),
+          timeStamp: DateTime.now().millisecondsSinceEpoch,
+        ));
+      }
+    } catch (e) {
+      // Update with error state
+      emit(state.copyWith(
+        locationsLoadingState: LoadingState.error(
+          AppError(message: 'Failed to load locations: ${e.toString()}')
+        ),
+        timeStamp: DateTime.now().millisecondsSinceEpoch,
+      ));
+    }
+  }
+
+  // Convenience method for UI
+  void onCountrySelected(Country country) {
+    add(CountrySelectedEvent(country));
+  }
+}
+```
+
+## 5. Best Practices
+
+1. **Loading State Management**:
+   - Use `LoadingState<T>` for each operation instead of global isLoading flag
+   - Create specific loading states for different processes (e.g., locationsLoadingState, searchLoadingState)
+   - Leverage factory constructors: LoadingState.initial(), LoadingState.loading(), LoadingState.success(), LoadingState.error()
+   - Access loading status via state.operationLoadingState.isLoading
+   - Access success status via state.operationLoadingState.isLoadedSuccess
+   - Access error via state.operationLoadingState.loadError
+   - Access data via state.operationLoadingState.type
+
+2. **Pagination**:
+   - Use `LoaderState` for pagination functionality
+   - Track pageSize, currentPage, hasNext
+   - Manage isLoadingMore, isLoadMoreSuccess, errorLoadMore
+
+3. **Error Handling**:
+   - Update loading state with error using LoadingState.error(AppError(...))
+   - Provide meaningful error messages
+
+4. **Timestamp Usage**:
+   - Update timeStamp in state changes to trigger rebuilds
+   - Use `DateTime.now().millisecondsSinceEpoch` for timestamp
+
+5. **Event Processing**:
+   - Name event handlers with underscore prefix (_onEventName)
+   - Keep event handlers focused on single responsibility
+
+6. **State Updates**:
+   - Always use copyWith for immutable state updates
+   - Only update necessary properties
+
+7. **Dependency Injection**:
+   - Inject dependencies through constructor
+   - Use interfaces (abstract classes) for dependencies
+
+8. **Consistency**:
+   - Follow consistent naming conventions
+   - Keep related files in the same directory structure 

@@ -1,0 +1,26 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+lib/
+  core/
+    constants/      // App-wide constants
+    theme/          // Theme configuration
+    utils/          // Helper functions and extensions
+    widgets/        // Reusable widgets used across features
+  data/
+    models/         // Data models/DTOs
+    repositories/   // Repository implementations
+    services/       // API services, local storage services
+  features/
+    feature_name/   // Each feature in its own directory
+      bloc/         // State management for the feature
+      pages/        // Screens and pages
+      widgets/      // Feature-specific widgets
+  l10n/             // Localization
+  main.dart         // Entry point
+test/
+  unit/             // Unit tests
+  widget/           // Widget tests
+  integration/      // Integration tests

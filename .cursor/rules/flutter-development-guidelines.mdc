@@ -1,0 +1,158 @@
+---
+description: 
+globs: *.dart
+alwaysApply: false
+---
+---
+description: Flutter development guidelines
+globs: .dart
+alwaysApply: false
+---
+# Flutter Development Guidelines
+
+## Coding Guidelines
+
+1. **Use proper null safety practices**
+   - Always mark nullable variables with `?`
+   - Use the `!` operator only when you're absolutely sure a value isn't null
+   - Provide default values where appropriate
+
+2. **Implement proper error handling with Either type**
+   - Use Either<Failure, Success> for all repository returns
+   - Create specific Failure classes for different error types
+   - Handle failures at the presentation layer appropriately
+
+3. **Follow proper naming conventions**
+   - Use camelCase for variables and method names
+   - Use PascalCase for classes and enum types
+   - Use snake_case for file names
+   - Prefix private variables with underscore
+
+4. **Use proper widget composition**
+   - Extract reusable widgets to separate classes
+   - Keep widget hierarchies flat when possible
+   - Use composition over inheritance for widgets
+
+5. **Implement proper routing using GoRouter**
+   - Define route paths as constants
+   - Use path parameters for dynamic routes
+   - Implement error handling for invalid routes
+   - Use nested routes for hierarchical navigation
+
+6. **Use proper form validation**
+   - Validate all user input at the form level
+   - Provide clear error messages for validation failures
+   - Implement real-time validation where appropriate
+
+7. **Follow proper state management with BLoC**
+   - Keep business logic separate from the UI
+   - Create events for user actions
+   - Emit states for UI changes
+   - Use BlocBuilder, BlocListener and BlocConsumer appropriately
+
+8. **Implement proper dependency injection using GetIt**
+   - Register dependencies at app startup
+   - Use factories for widgets and blocs
+   - Use singletons for services
+   - Organize registration code in modules
+
+9. **Use proper asset management**
+   - Declare all assets in pubspec.yaml
+   - Use asset constants for referencing assets
+   - Optimize images for mobile
+   - Use SVGs when possible
+
+10. **Follow proper testing practices**
+    - Write unit tests for all business logic
+    - Write widget tests for complex widgets
+    - Write integration tests for critical user flows
+    - Use mocks and fakes appropriately
+
+## Widget Guidelines
+
+1. **Keep widgets small and focused**
+   - Each widget should do one thing well
+   - Split large widgets into smaller components
+   - Aim for less than 100 lines per widget class
+
+2. **Use const constructors when possible**
+   - Mark stateless widgets as const
+   - Use const for fixed-value widget creation
+   - Understand the benefits for build optimization
+
+3. **Implement proper widget keys**
+   - Use unique keys for items in lists
+   - Understand when ValueKey, ObjectKey, or GlobalKey are needed
+   - Use keys to preserve state during widget rebuilds
+
+4. **Follow proper layout principles**
+   - Understand constraints-based layout system
+   - Use appropriate layout widgets (Row, Column, Stack, etc.)
+   - Implement responsive layouts for different screen sizes
+   - Avoid hardcoded dimensions
+
+5. **Use proper widget lifecycle methods**
+   - Implement initState, dispose, and didUpdateWidget correctly
+   - Clean up resources in dispose method
+   - Understand the build lifecycle
+
+6. **Implement proper error boundaries**
+   - Use ErrorWidget.builder for catching widget errors
+   - Implement custom error handling for critical widgets
+   - Gracefully degrade UI when errors occur
+
+7. **Use proper performance optimization techniques**
+   - Implement const constructors for stateless widgets
+   - Use RepaintBoundary for isolating repaints
+   - Optimize build methods to minimize rebuilds
+   - Use ListView.builder for long lists
+
+8. **Follow proper accessibility guidelines**
+   - Add semantic labels to all interactive elements
+   - Ensure proper contrast ratios for text
+   - Support screen readers with Semantics widget
+   - Test with accessibility tools
+
+## Performance Guidelines
+
+1. **Use proper image caching**
+   - Implement cached_network_image for remote images
+   - Set appropriate cache sizes
+   - Use appropriate image formats and resolutions
+   - Implement placeholder and error widgets
+
+2. **Implement proper list view optimization**
+   - Use ListView.builder for long lists
+   - Implement pagination for API results
+   - Cache list items where appropriate
+   - Use const constructors for list items
+
+3. **Use proper build methods optimization**
+   - Keep build methods simple and focused
+   - Extract widget methods appropriately
+   - Use const constructors for static parts
+   - Minimize rebuilds with shouldRebuild
+
+4. **Follow proper state management patterns**
+   - Choose appropriate state management solution (BLoC, Provider, etc.)
+   - Keep state at appropriate level in the widget tree
+   - Minimize unnecessary state updates
+   - Use efficient data structures for state
+
+5. **Implement proper memory management**
+   - Dispose controllers and streams when no longer needed
+   - Use weak references for cache implementation
+   - Monitor memory usage during development
+   - Close connections and cancel subscriptions
+
+6. **Use proper platform channels when needed**
+   - Implement error handling on both dart and native sides
+   - Use appropriate data types for channel communication
+   - Consider background execution for long-running operations
+   - Test on all supported platforms
+
+7. **Follow proper compilation optimization techniques**
+   - Use appropriate build modes (debug, profile, release)
+   - Implement tree shaking to remove unused code
+   - Optimize asset sizes for production
+   - Monitor app size with each release

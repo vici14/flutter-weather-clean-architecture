@@ -1,0 +1,47 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Flutter Widget Structure Guidelines
+
+## Folder Organization
+- Group related widgets into meaningful subfolders (layout, selection, summary, etc.)
+- Keep widget files under 300 lines when possible
+- Break down large widgets (>500 lines) into component directories
+- Place shared/common widgets in a 'common' subfolder
+
+## Directory Structure
+lib/features/{feature_name}/
+├── widgets/
+│   ├── index.dart (exports all widgets)
+│   ├── layout/ (structural widgets)
+│   ├── selection/ (interactive input widgets)
+│   ├── summary/ (display/output widgets)
+│   ├── common/ (shared components)
+│   └── additional/ (auxiliary features)
+
+## Large Widget Organization
+For widgets exceeding 500 lines:
+widget_name/
+├── index.dart (exports everything)
+├── widget_name.dart (main container)
+├── component_one.dart
+├── component_two.dart
+└── component_three.dart
+
+## Naming Conventions
+- Use snake_case for filenames
+- Widget classes should be PascalCase and end with 'Widget'
+- Component widgets should be prefixed with parent widget name
+
+## Implementation Guidelines
+- Each widget should have a single responsibility
+- Extract repeating UI patterns into reusable components
+- Keep state management logic separate from UI components
+- Use parameters for configuration rather than hardcoded values
