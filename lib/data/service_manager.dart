@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 
-import '../data/services/location_service.dart';
-import '../data/services/weather_service.dart';
+import 'services/location_service.dart';
+import 'services/weather_service.dart';
 
 /// A singleton class that manages all services in the application
 class ServiceManager {
