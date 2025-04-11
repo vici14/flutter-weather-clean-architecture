@@ -45,6 +45,7 @@ Future<void> setupServiceLocator() async {
     getIt.registerFactory<LocationBloc>(
       () => LocationBloc(getIt<ILocationRepository>()),
     );
+    getIt<LocationBloc>().loadCountries();
   } catch (e) {
     print("setupServiceLocator error:${e.toString()}");
   }
