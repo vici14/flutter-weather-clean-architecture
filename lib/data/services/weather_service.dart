@@ -198,4 +198,27 @@ class WeatherService {
       return WeatherResult.failure(Exception('Network error: $e'));
     }
   }
+
+  /// Get 4 days ahead forecast for a location
+  Future<WeatherResult<List<DailyForecast>>> getFourDaysForecast({
+    required double lat,
+    required double lon,
+    String units = 'metric',
+  }) async {
+    final forecastResult = await getWeatherForecast(
+      lat: lat,
+      lon: lon,
+      units: units,
+    );
+
+    if (forecastResult.isSuccess && forecastResult.data != null) {
+      // Filter to get only the next 4 days (excluding today)
+      final fourDaysForecast =
+          forecastResult.data!.daily.take(5).skip(1).toList();
+      return WeatherResult.success(fourDaysForecast);
+    } else {
+      return WeatherResult.failure(
+          forecastResult.error ?? Exception('Unknown error'));
+    }
+  }
 }
