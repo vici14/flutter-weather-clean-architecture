@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "960168482377",
+    "project_id": "home-assignment-21a2b",
+    "storage_bucket": "home-assignment-21a2b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:960168482377:android:c98bc65964868877321198",
+        "android_client_info": {
+          "package_name": "com.chauvietcuong.weather_app_assignment"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHS3vbjtlCbu0WK3P-2NBkR6p7UuvsHNk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

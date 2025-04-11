@@ -46,21 +46,20 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_API_KEY',
-    appId: 'YOUR_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyCHS3vbjtlCbu0WK3P-2NBkR6p7UuvsHNk',
+    appId: '1:960168482377:android:c98bc65964868877321198',
+    messagingSenderId: '960168482377',
+    projectId: 'home-assignment-21a2b',
+    storageBucket: 'home-assignment-21a2b.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'YOUR_API_KEY',
-    appId: 'YOUR_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
-    iosClientId: 'YOUR_IOS_CLIENT_ID',
-    iosBundleId: 'YOUR_IOS_BUNDLE_ID',
+    apiKey: 'AIzaSyDMdUVaABQehZoVfNp976RYLgN_UTWeqwY',
+    appId: '1:960168482377:ios:79c765d310c95f6b321198',
+    messagingSenderId: '960168482377',
+    projectId: 'home-assignment-21a2b',
+    storageBucket: 'home-assignment-21a2b.firebasestorage.app',
+    iosBundleId: 'com.chauvietcuong.weatherappassignment.weatherAppAssignment',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
