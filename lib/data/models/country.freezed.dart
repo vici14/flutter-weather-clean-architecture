@@ -22,13 +22,13 @@ Country _$CountryFromJson(Map<String, dynamic> json) {
 mixin _$Country {
   int get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
-  String get iso2 => throw _privateConstructorUsedError;
-  String get iso3 => throw _privateConstructorUsedError;
-  String get phonecode => throw _privateConstructorUsedError;
-  String get capital => throw _privateConstructorUsedError;
-  String get currency => throw _privateConstructorUsedError;
-  String get native => throw _privateConstructorUsedError;
-  String get emoji => throw _privateConstructorUsedError;
+  String? get iso2 => throw _privateConstructorUsedError;
+  String? get iso3 => throw _privateConstructorUsedError;
+  String? get phonecode => throw _privateConstructorUsedError;
+  String? get capital => throw _privateConstructorUsedError;
+  String? get currency => throw _privateConstructorUsedError;
+  String? get native => throw _privateConstructorUsedError;
+  String? get emoji => throw _privateConstructorUsedError;
   String? get numeric_code => throw _privateConstructorUsedError;
   String? get currency_name => throw _privateConstructorUsedError;
   String? get currency_symbol => throw _privateConstructorUsedError;
@@ -61,13 +61,13 @@ abstract class $CountryCopyWith<$Res> {
   $Res call(
       {int id,
       String name,
-      String iso2,
-      String iso3,
-      String phonecode,
-      String capital,
-      String currency,
-      String native,
-      String emoji,
+      String? iso2,
+      String? iso3,
+      String? phonecode,
+      String? capital,
+      String? currency,
+      String? native,
+      String? emoji,
       String? numeric_code,
       String? currency_name,
       String? currency_symbol,
@@ -101,13 +101,13 @@ class _$CountryCopyWithImpl<$Res, $Val extends Country>
   $Res call({
     Object? id = null,
     Object? name = null,
-    Object? iso2 = null,
-    Object? iso3 = null,
-    Object? phonecode = null,
-    Object? capital = null,
-    Object? currency = null,
-    Object? native = null,
-    Object? emoji = null,
+    Object? iso2 = freezed,
+    Object? iso3 = freezed,
+    Object? phonecode = freezed,
+    Object? capital = freezed,
+    Object? currency = freezed,
+    Object? native = freezed,
+    Object? emoji = freezed,
     Object? numeric_code = freezed,
     Object? currency_name = freezed,
     Object? currency_symbol = freezed,
@@ -132,34 +132,34 @@ class _$CountryCopyWithImpl<$Res, $Val extends Country>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      iso2: null == iso2
+      iso2: freezed == iso2
           ? _value.iso2
           : iso2 // ignore: cast_nullable_to_non_nullable
-              as String,
-      iso3: null == iso3
+              as String?,
+      iso3: freezed == iso3
           ? _value.iso3
           : iso3 // ignore: cast_nullable_to_non_nullable
-              as String,
-      phonecode: null == phonecode
+              as String?,
+      phonecode: freezed == phonecode
           ? _value.phonecode
           : phonecode // ignore: cast_nullable_to_non_nullable
-              as String,
-      capital: null == capital
+              as String?,
+      capital: freezed == capital
           ? _value.capital
           : capital // ignore: cast_nullable_to_non_nullable
-              as String,
-      currency: null == currency
+              as String?,
+      currency: freezed == currency
           ? _value.currency
           : currency // ignore: cast_nullable_to_non_nullable
-              as String,
-      native: null == native
+              as String?,
+      native: freezed == native
           ? _value.native
           : native // ignore: cast_nullable_to_non_nullable
-              as String,
-      emoji: null == emoji
+              as String?,
+      emoji: freezed == emoji
           ? _value.emoji
           : emoji // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       numeric_code: freezed == numeric_code
           ? _value.numeric_code
           : numeric_code // ignore: cast_nullable_to_non_nullable
@@ -230,13 +230,13 @@ abstract class _$$CountryImplCopyWith<$Res> implements $CountryCopyWith<$Res> {
   $Res call(
       {int id,
       String name,
-      String iso2,
-      String iso3,
-      String phonecode,
-      String capital,
-      String currency,
-      String native,
-      String emoji,
+      String? iso2,
+      String? iso3,
+      String? phonecode,
+      String? capital,
+      String? currency,
+      String? native,
+      String? emoji,
       String? numeric_code,
       String? currency_name,
       String? currency_symbol,
@@ -268,13 +268,13 @@ class __$$CountryImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? name = null,
-    Object? iso2 = null,
-    Object? iso3 = null,
-    Object? phonecode = null,
-    Object? capital = null,
-    Object? currency = null,
-    Object? native = null,
-    Object? emoji = null,
+    Object? iso2 = freezed,
+    Object? iso3 = freezed,
+    Object? phonecode = freezed,
+    Object? capital = freezed,
+    Object? currency = freezed,
+    Object? native = freezed,
+    Object? emoji = freezed,
     Object? numeric_code = freezed,
     Object? currency_name = freezed,
     Object? currency_symbol = freezed,
@@ -299,34 +299,34 @@ class __$$CountryImplCopyWithImpl<$Res>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      iso2: null == iso2
+      iso2: freezed == iso2
           ? _value.iso2
           : iso2 // ignore: cast_nullable_to_non_nullable
-              as String,
-      iso3: null == iso3
+              as String?,
+      iso3: freezed == iso3
           ? _value.iso3
           : iso3 // ignore: cast_nullable_to_non_nullable
-              as String,
-      phonecode: null == phonecode
+              as String?,
+      phonecode: freezed == phonecode
           ? _value.phonecode
           : phonecode // ignore: cast_nullable_to_non_nullable
-              as String,
-      capital: null == capital
+              as String?,
+      capital: freezed == capital
           ? _value.capital
           : capital // ignore: cast_nullable_to_non_nullable
-              as String,
-      currency: null == currency
+              as String?,
+      currency: freezed == currency
           ? _value.currency
           : currency // ignore: cast_nullable_to_non_nullable
-              as String,
-      native: null == native
+              as String?,
+      native: freezed == native
           ? _value.native
           : native // ignore: cast_nullable_to_non_nullable
-              as String,
-      emoji: null == emoji
+              as String?,
+      emoji: freezed == emoji
           ? _value.emoji
           : emoji // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       numeric_code: freezed == numeric_code
           ? _value.numeric_code
           : numeric_code // ignore: cast_nullable_to_non_nullable
@@ -393,13 +393,13 @@ class _$CountryImpl implements _Country {
   const _$CountryImpl(
       {required this.id,
       required this.name,
-      required this.iso2,
-      required this.iso3,
-      required this.phonecode,
-      required this.capital,
-      required this.currency,
-      required this.native,
-      required this.emoji,
+      this.iso2,
+      this.iso3,
+      this.phonecode,
+      this.capital,
+      this.currency,
+      this.native,
+      this.emoji,
       this.numeric_code,
       this.currency_name,
       this.currency_symbol,
@@ -423,19 +423,19 @@ class _$CountryImpl implements _Country {
   @override
   final String name;
   @override
-  final String iso2;
+  final String? iso2;
   @override
-  final String iso3;
+  final String? iso3;
   @override
-  final String phonecode;
+  final String? phonecode;
   @override
-  final String capital;
+  final String? capital;
   @override
-  final String currency;
+  final String? currency;
   @override
-  final String native;
+  final String? native;
   @override
-  final String emoji;
+  final String? emoji;
   @override
   final String? numeric_code;
   @override
@@ -562,13 +562,13 @@ abstract class _Country implements Country {
   const factory _Country(
       {required final int id,
       required final String name,
-      required final String iso2,
-      required final String iso3,
-      required final String phonecode,
-      required final String capital,
-      required final String currency,
-      required final String native,
-      required final String emoji,
+      final String? iso2,
+      final String? iso3,
+      final String? phonecode,
+      final String? capital,
+      final String? currency,
+      final String? native,
+      final String? emoji,
       final String? numeric_code,
       final String? currency_name,
       final String? currency_symbol,
@@ -591,19 +591,19 @@ abstract class _Country implements Country {
   @override
   String get name;
   @override
-  String get iso2;
+  String? get iso2;
   @override
-  String get iso3;
+  String? get iso3;
   @override
-  String get phonecode;
+  String? get phonecode;
   @override
-  String get capital;
+  String? get capital;
   @override
-  String get currency;
+  String? get currency;
   @override
-  String get native;
+  String? get native;
   @override
-  String get emoji;
+  String? get emoji;
   @override
   String? get numeric_code;
   @override
