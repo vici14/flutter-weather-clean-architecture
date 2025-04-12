@@ -44,6 +44,7 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
             value: result.data,
           ),
           countries: result.data,
+          allCountries: result.data,
           timeStamp: DateTime.now().millisecondsSinceEpoch,
         ));
       } else {
@@ -144,27 +145,64 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
     SearchLocationsEvent event,
     Emitter<LocationState> emit,
   ) async {
+    // Update loading state for search operation
     emit(state.copyWith(
+      searchLoadingState: LoadingState.loading(),
       query: event.query,
       timeStamp: DateTime.now().millisecondsSinceEpoch,
     ));
 
     try {
       // If we have countries loaded, we can filter them locally
-      if (state.countries.isNotEmpty) {
-        final filteredCountries = state.countries
-            .where((country) =>
-                country.name.toLowerCase().contains(event.query.toLowerCase()))
-            .toList();
+      if (state.allCountries.isNotEmpty) {
+        List<Country> filteredCountries = [];
 
+        // If query is empty, show all countries
+        if (event.query.isEmpty) {
+          filteredCountries = List.from(state.allCountries);
+        } else {
+          // Filter countries by name, capital, and region based on the query
+          filteredCountries = state.allCountries
+              .where((country) =>
+                  country.name
+                      .toLowerCase()
+                      .contains(event.query.toLowerCase()) ||
+                  (country.capital != null &&
+                      country.capital!
+                          .toLowerCase()
+                          .contains(event.query.toLowerCase())) ||
+                  (country.region != null &&
+                      country.region!
+                          .toLowerCase()
+                          .contains(event.query.toLowerCase())))
+              .toList();
+        }
+
+        // Update state with search results and success state
         emit(state.copyWith(
           countries: filteredCountries,
+          searchLoadingState: LoadingState<List<Country>>(
+            isLoading: false,
+            isLoadedSuccess: true,
+            value: filteredCountries,
+          ),
+          timeStamp: DateTime.now().millisecondsSinceEpoch,
+        ));
+      } else {
+        // If no countries loaded yet, set search state to error
+        emit(state.copyWith(
+          searchLoadingState: LoadingState.error(
+            AppError(message: 'No countries available to search from.'),
+          ),
           timeStamp: DateTime.now().millisecondsSinceEpoch,
         ));
       }
     } catch (e) {
+      // Handle errors
       emit(state.copyWith(
-        errorMessage: 'Failed to search locations: ${e.toString()}',
+        searchLoadingState: LoadingState.error(
+          AppError(message: 'Failed to search locations: ${e.toString()}'),
+        ),
         timeStamp: DateTime.now().millisecondsSinceEpoch,
       ));
     }
@@ -182,7 +220,7 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
     ));
 
     // Load states for the selected country
-    add(LoadStatesEvent(event.country.iso2));
+    add(LoadStatesEvent(event.country.iso2 ?? ''));
   }
 
   void _onStateSelected(
@@ -198,7 +236,7 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
     ));
 
     // Load cities for the selected state and country
-    add(LoadCitiesEvent(state.selectedCountry!.iso2, event.state.iso2));
+    add(LoadCitiesEvent(state.selectedCountry!.iso2 ?? '', event.state.iso2));
   }
 
   void _onCitySelected(
@@ -252,6 +290,10 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
 
   void loadCountries() {
     add(GetCountriesEvent());
+  }
+
+  void searchCountries(String query) {
+    add(SearchLocationsEvent(query));
   }
 
   void clearSelections({

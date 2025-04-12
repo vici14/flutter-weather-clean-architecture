@@ -8,8 +8,10 @@ class LocationState extends BaseBlocState {
   final LoadingState<List<Country>> countriesLoadingState;
   final LoadingState<List<State>> statesLoadingState;
   final LoadingState<List<City>> citiesLoadingState;
+  final LoadingState<List<Country>> searchLoadingState;
 
   final List<Country> countries;
+  final List<Country> allCountries; // Store the original list of countries
   final List<State> states;
   final List<City> cities;
 
@@ -26,7 +28,9 @@ class LocationState extends BaseBlocState {
     this.countriesLoadingState = const LoadingState(),
     this.statesLoadingState = const LoadingState(),
     this.citiesLoadingState = const LoadingState(),
+    this.searchLoadingState = const LoadingState(),
     this.countries = const [],
+    this.allCountries = const [],
     this.states = const [],
     this.cities = const [],
     this.selectedCountry,
@@ -42,7 +46,9 @@ class LocationState extends BaseBlocState {
     LoadingState<List<Country>>? countriesLoadingState,
     LoadingState<List<State>>? statesLoadingState,
     LoadingState<List<City>>? citiesLoadingState,
+    LoadingState<List<Country>>? searchLoadingState,
     List<Country>? countries,
+    List<Country>? allCountries,
     List<State>? states,
     List<City>? cities,
     Country? selectedCountry,
@@ -61,7 +67,9 @@ class LocationState extends BaseBlocState {
           countriesLoadingState ?? this.countriesLoadingState,
       statesLoadingState: statesLoadingState ?? this.statesLoadingState,
       citiesLoadingState: citiesLoadingState ?? this.citiesLoadingState,
+      searchLoadingState: searchLoadingState ?? this.searchLoadingState,
       countries: countries ?? this.countries,
+      allCountries: allCountries ?? this.allCountries,
       states: states ?? this.states,
       cities: cities ?? this.cities,
       selectedCountry: clearSelectedCountry == true
@@ -83,7 +91,9 @@ class LocationState extends BaseBlocState {
         countriesLoadingState,
         statesLoadingState,
         citiesLoadingState,
+        searchLoadingState,
         countries,
+        allCountries,
         states,
         cities,
         selectedCountry ??
