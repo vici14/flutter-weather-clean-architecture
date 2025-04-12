@@ -1,0 +1,85 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Weather App Design Guidelines
+
+## Text Styles
+
+All text throughout the application MUST use the predefined styles from `AppTextStyles` in `lib/core/theme/app_text_styles.dart`. Direct use of `TextStyle` without referencing these predefined styles is prohibited.
+
+### Available Text Styles
+
+1. **Temperature Style** - `AppTextStyles.temperatureStyle`
+   - Use for main temperature display
+   - Large (96pt), extra bold display
+   - Example: The main temperature number on the home screen
+
+2. **City Name Style** - `AppTextStyles.cityNameStyle`
+   - Use for displaying city names in headers
+   - Large (36pt), thin weight
+   - Example: The city name at the top of the weather view
+
+3. **Day Forecast Style** - `AppTextStyles.dayForecastStyle`
+   - Use for day labels in forecast sections
+   - Medium size (16pt), regular weight
+   - Example: "Monday", "Tuesday" in the weekly forecast
+
+4. **Temperature Forecast Style** - `AppTextStyles.tempForecastStyle`
+   - Use for temperature values in forecast sections
+   - Medium size (16pt), regular weight
+   - Example: "24°/18°" in the weekly forecast
+
+5. **Header Style** - `AppTextStyles.headerStyle`
+   - Use for section headers and titles
+   - Medium-large (20pt), medium weight
+   - Example: "Weekly Forecast", "Weather Details" section headers
+
+6. **Body Style** - `AppTextStyles.bodyStyle`
+   - Use for regular body text and descriptions
+   - Standard size (14pt), regular weight
+   - Example: Weather condition descriptions, UI labels
+
+## Usage Guidelines
+
+1. **DO NOT**:
+   - Create custom TextStyle instances without proper justification
+   - Modify existing text styles directly
+   - Use hard-coded font sizes, weights, or colors
+
+2. **DO**:
+   - Use the appropriate predefined style for each text element
+   - If a style needs a minor modification, derive from an existing style:
+     ```dart
+     final customStyle = AppTextStyles.bodyStyle.copyWith(color: AppColors.accent);
+     ```
+   - Propose new text styles to be added to AppTextStyles if there's a recurring need
+
+3. **Implementation Example**:
+   ```dart
+   Text(
+     'London',
+     style: AppTextStyles.cityNameStyle,
+   )
+   ```
+
+4. **Responsive Considerations**:
+   - Text styles are defined for standard device sizes
+   - For very small screens, consider using a modifier for critical text
+
+## Extending the System
+
+When a new text style is needed:
+1. Evaluate if an existing style can be adapted
+2. If not, add the new style to `app_text_styles.dart`
+3. Document the usage context
+4. Follow the existing naming convention: `{context}Style`
+
+## Colors
+
+Always use colors from `AppColors` in `lib/core/theme/app_colors.dart` instead of hard-coded color values.
+
+## Theme Integration
+
+Text styles work in conjunction with the app theme defined in `lib/core/theme/app_theme.dart`. When building widgets, respect the theme context to ensure proper light/dark mode support. 
