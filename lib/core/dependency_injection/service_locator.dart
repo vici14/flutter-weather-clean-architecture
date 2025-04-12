@@ -37,12 +37,12 @@ Future<void> setupServiceLocator() async {
     );
 
     // Cubits
-    getIt.registerFactory<WeatherBloc>(
+    getIt.registerLazySingleton<WeatherBloc>(
       () => WeatherBloc(getIt<IWeatherRepository>()),
     );
 
     // Blocs
-    getIt.registerFactory<LocationBloc>(
+    getIt.registerLazySingleton<LocationBloc>(
       () => LocationBloc(getIt<ILocationRepository>()),
     );
     getIt<LocationBloc>().loadCountries();

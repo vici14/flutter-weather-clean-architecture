@@ -7,8 +7,29 @@ import 'features/location/bloc/location_bloc.dart';
 import 'routes/app_routes.dart';
 import 'core/dependency_injection/service_locator.dart';
 
+class AppBlocObserver extends BlocObserver {
+  @override
+  void onChange(BlocBase bloc, Change change) {
+    super.onChange(bloc, change);
+    if (kDebugMode) {
+      print('${bloc.runtimeType} $change');
+    }
+  }
+
+  @override
+  void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
+    if (kDebugMode) {
+      print('${bloc.runtimeType} $error $stackTrace');
+    }
+    super.onError(bloc, error, stackTrace);
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Setup bloc observer
+  Bloc.observer = AppBlocObserver();
 
   // Setup dependency injection
   await setupServiceLocator();
@@ -24,11 +45,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<LocationBloc>(
-          create: (context) => getIt<LocationBloc>(),
+        BlocProvider<LocationBloc>.value(
+          value: getIt<LocationBloc>(),
         ),
-        BlocProvider<WeatherBloc>(
-          create: (context) => getIt<WeatherBloc>(),
+        BlocProvider<WeatherBloc>.value(
+          value: getIt<WeatherBloc>(),
         ),
       ],
       child: MaterialApp(
