@@ -6,13 +6,14 @@ import 'core/theme/theme.dart';
 import 'features/location/bloc/location_bloc.dart';
 import 'routes/app_routes.dart';
 import 'core/dependency_injection/service_locator.dart';
+import 'core/services/loading_manager.dart';
 
 class AppBlocObserver extends BlocObserver {
   @override
   void onChange(BlocBase bloc, Change change) {
     super.onChange(bloc, change);
     if (kDebugMode) {
-      print('${bloc.runtimeType} $change');
+      // print('${bloc.runtimeType} $change');
     }
   }
 
@@ -37,8 +38,20 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void dispose() {
+    // Dispose resources when app is shut down
+    getIt<LoadingManager>().dispose();
+    super.dispose();
+  }
 
   // This widget is the root of your application.
   @override
@@ -53,6 +66,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         title: 'Weather App',
         theme: AppTheme.lightTheme,
         onGenerateRoute: AppRoutes.onGenerateRoute,

@@ -5,7 +5,7 @@ class LoggingInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     AppLogger.info('REQUEST[${options.method}] => PATH: ${options.path}');
-    AppLogger.debug('Request Headers: ${options.headers}');
+    // AppLogger.debug('Request Headers: ${options.headers}');
     AppLogger.debug('Request Data: ${options.data}');
     AppLogger.debug('Request Query Parameters: ${options.queryParameters}');
     handler.next(options);
@@ -15,7 +15,7 @@ class LoggingInterceptor extends Interceptor {
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     AppLogger.info(
         'RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}');
-    AppLogger.debug('Response Headers: ${response.headers}');
+    // AppLogger.debug('Response Headers: ${response.headers}');
     AppLogger.debug('Response Data: ${response.data}');
     handler.next(response);
   }
