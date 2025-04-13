@@ -8,19 +8,6 @@ abstract class LocationEvent extends BaseEvent {}
 
 class GetCountriesEvent extends LocationEvent {}
 
-class LoadStatesEvent extends LocationEvent {
-  final String countryIso2;
-
-  LoadStatesEvent(this.countryIso2);
-}
-
-class LoadCitiesEvent extends LocationEvent {
-  final String countryIso2;
-  final String stateIso2;
-
-  LoadCitiesEvent(this.countryIso2, this.stateIso2);
-}
-
 class SearchLocationsEvent extends LocationEvent {
   final String query;
 
@@ -33,26 +20,18 @@ class CountrySelectedEvent extends LocationEvent {
   CountrySelectedEvent(this.country);
 }
 
-class StateSelectedEvent extends LocationEvent {
-  final State state;
+class GetCountryDetailsEvent extends LocationEvent {
+  final String iso2;
 
-  StateSelectedEvent(this.state);
-}
-
-class CitySelectedEvent extends LocationEvent {
-  final City city;
-
-  CitySelectedEvent(this.city);
+  GetCountryDetailsEvent(this.iso2);
 }
 
 class ClearSelectionEvent extends LocationEvent {
   final bool clearCountry;
-  final bool clearState;
-  final bool clearCity;
+  
 
   ClearSelectionEvent({
     this.clearCountry = false,
-    this.clearState = false,
-    this.clearCity = false,
+    
   });
 }

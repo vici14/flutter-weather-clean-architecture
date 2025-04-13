@@ -15,13 +15,10 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
 
   LocationBloc(this._locationRepository) : super(state: const LocationState()) {
     on<GetCountriesEvent>(_onGetCountries);
-    on<LoadStatesEvent>(_onLoadStates);
-    on<LoadCitiesEvent>(_onLoadCities);
     on<SearchLocationsEvent>(_onSearchLocations);
     on<CountrySelectedEvent>(_onCountrySelected);
-    on<StateSelectedEvent>(_onStateSelected);
-    on<CitySelectedEvent>(_onCitySelected);
     on<ClearSelectionEvent>(_onClearSelection);
+    on<GetCountryDetailsEvent>(_onGetCountryDetails);
   }
 
   Future<void> _onGetCountries(
@@ -58,84 +55,6 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
       emit(state.copyWith(
         countriesLoadingState: LoadingState.error(
             AppError(message: 'Failed to load countries: ${e.toString()}')),
-        timeStamp: DateTime.now().millisecondsSinceEpoch,
-      ));
-    }
-  }
-
-  Future<void> _onLoadStates(
-    LoadStatesEvent event,
-    Emitter<LocationState> emit,
-  ) async {
-    emit(state.copyWith(
-      statesLoadingState: LoadingState.loading(),
-      timeStamp: DateTime.now().millisecondsSinceEpoch,
-    ));
-
-    try {
-      final result =
-          await _locationRepository.getStatesByCountry(event.countryIso2);
-
-      if (result.isSuccess && result.data != null) {
-        emit(state.copyWith(
-          statesLoadingState: LoadingState<List<State>>(
-            isLoading: false,
-            isLoadedSuccess: true,
-            value: result.data,
-          ),
-          states: result.data,
-          timeStamp: DateTime.now().millisecondsSinceEpoch,
-        ));
-      } else {
-        emit(state.copyWith(
-          statesLoadingState: LoadingState.error(
-              AppError(message: 'Failed to load states: ${result.error}')),
-          timeStamp: DateTime.now().millisecondsSinceEpoch,
-        ));
-      }
-    } catch (e) {
-      emit(state.copyWith(
-        statesLoadingState: LoadingState.error(
-            AppError(message: 'Failed to load states: ${e.toString()}')),
-        timeStamp: DateTime.now().millisecondsSinceEpoch,
-      ));
-    }
-  }
-
-  Future<void> _onLoadCities(
-    LoadCitiesEvent event,
-    Emitter<LocationState> emit,
-  ) async {
-    emit(state.copyWith(
-      citiesLoadingState: LoadingState.loading(),
-      timeStamp: DateTime.now().millisecondsSinceEpoch,
-    ));
-
-    try {
-      final result = await _locationRepository.getCitiesByStateAndCountry(
-          event.countryIso2, event.stateIso2);
-
-      if (result.isSuccess && result.data != null) {
-        emit(state.copyWith(
-          citiesLoadingState: LoadingState<List<City>>(
-            isLoading: false,
-            isLoadedSuccess: true,
-            value: result.data,
-          ),
-          cities: result.data,
-          timeStamp: DateTime.now().millisecondsSinceEpoch,
-        ));
-      } else {
-        emit(state.copyWith(
-          citiesLoadingState: LoadingState.error(
-              AppError(message: 'Failed to load cities: ${result.error}')),
-          timeStamp: DateTime.now().millisecondsSinceEpoch,
-        ));
-      }
-    } catch (e) {
-      emit(state.copyWith(
-        citiesLoadingState: LoadingState.error(
-            AppError(message: 'Failed to load cities: ${e.toString()}')),
         timeStamp: DateTime.now().millisecondsSinceEpoch,
       ));
     }
@@ -218,35 +137,6 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
       clearSelectedCity: true,
       timeStamp: DateTime.now().millisecondsSinceEpoch,
     ));
-
-    // Load states for the selected country
-    add(LoadStatesEvent(event.country.iso2 ?? ''));
-  }
-
-  void _onStateSelected(
-    StateSelectedEvent event,
-    Emitter<LocationState> emit,
-  ) {
-    if (state.selectedCountry == null) return;
-
-    emit(state.copyWith(
-      selectedState: event.state,
-      clearSelectedCity: true,
-      timeStamp: DateTime.now().millisecondsSinceEpoch,
-    ));
-
-    // Load cities for the selected state and country
-    add(LoadCitiesEvent(state.selectedCountry!.iso2 ?? '', event.state.iso2));
-  }
-
-  void _onCitySelected(
-    CitySelectedEvent event,
-    Emitter<LocationState> emit,
-  ) {
-    emit(state.copyWith(
-      selectedCity: event.city,
-      timeStamp: DateTime.now().millisecondsSinceEpoch,
-    ));
   }
 
   void _onClearSelection(
@@ -255,24 +145,59 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
   ) {
     emit(state.copyWith(
       clearSelectedCountry: event.clearCountry,
-      clearSelectedState: event.clearState,
-      clearSelectedCity: event.clearCity,
       timeStamp: DateTime.now().millisecondsSinceEpoch,
     ));
 
     // Reset related lists if needed
     if (event.clearCountry) {
       emit(state.copyWith(
-        states: const [],
-        cities: const [],
-        timeStamp: DateTime.now().millisecondsSinceEpoch,
-      ));
-    } else if (event.clearState) {
-      emit(state.copyWith(
-        cities: const [],
         timeStamp: DateTime.now().millisecondsSinceEpoch,
       ));
     }
+  }
+
+  Future<void> _onGetCountryDetails(
+    GetCountryDetailsEvent event,
+    Emitter<LocationState> emit,
+  ) async {
+    emit(state.copyWith(
+      countryDetailsLoadingState: LoadingState.loading(),
+      timeStamp: DateTime.now().millisecondsSinceEpoch,
+    ));
+
+    try {
+      final result = await _locationRepository.getCountryDetails(event.iso2);
+
+      if (result.isSuccess && result.data != null) {
+        emit(state.copyWith(
+          countryDetailsLoadingState: LoadingState<Country>(
+            isLoading: false,
+            isLoadedSuccess: true,
+            value: result.data,
+          ),
+          countryDetails: result.data,
+          timeStamp: DateTime.now().millisecondsSinceEpoch,
+        ));
+      } else {
+        emit(state.copyWith(
+          countryDetailsLoadingState: LoadingState.error(
+            AppError(
+                message: 'Failed to load country details: ${result.error}'),
+          ),
+          timeStamp: DateTime.now().millisecondsSinceEpoch,
+        ));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        countryDetailsLoadingState: LoadingState.error(
+          AppError(message: 'Failed to load country details: ${e.toString()}'),
+        ),
+        timeStamp: DateTime.now().millisecondsSinceEpoch,
+      ));
+    }
+  }
+  void getCountries() {
+    add(GetCountriesEvent());
   }
 
   // Convenience methods for UI
@@ -280,16 +205,8 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
     add(CountrySelectedEvent(country));
   }
 
-  void onStateSelected(State state) {
-    add(StateSelectedEvent(state));
-  }
-
-  void onCitySelected(City city) {
-    add(CitySelectedEvent(city));
-  }
-
-  void loadCountries() {
-    add(GetCountriesEvent());
+  void getCountryDetails(String iso2) {
+    add(GetCountryDetailsEvent(iso2));
   }
 
   void searchCountries(String query) {
@@ -298,13 +215,9 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
 
   void clearSelections({
     bool clearCountry = false,
-    bool clearState = false,
-    bool clearCity = false,
   }) {
     add(ClearSelectionEvent(
       clearCountry: clearCountry,
-      clearState: clearState,
-      clearCity: clearCity,
     ));
   }
 }

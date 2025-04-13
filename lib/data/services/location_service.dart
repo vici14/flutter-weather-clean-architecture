@@ -2,6 +2,7 @@ import 'dart:convert';
 import '../api_client.dart';
 import '../models/city.dart';
 import '../models/country.dart';
+import '../models/result.dart';
 import '../models/state.dart';
 import '../repositories/i_location_repository.dart';
 
@@ -63,109 +64,4 @@ class LocationService {
     }
   }
 
-  /// Get a list of all states
-  Future<Result<List<State>>> getAllStates() async {
-    try {
-      final response = await _client.get(
-        '$_baseUrl/states',
-        headers: _headers,
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        final states = data.map((json) => State.fromJson(json)).toList();
-        return Result.success(states);
-      } else {
-        return Result.failure(
-            Exception('Failed to load states: ${response.statusCode}'));
-      }
-    } catch (e) {
-      return Result.failure(Exception('Network error: $e'));
-    }
-  }
-
-  /// Get a list of states by country
-  Future<Result<List<State>>> getStatesByCountry(String countryIso2) async {
-    try {
-      final response = await _client.get(
-        '$_baseUrl/countries/$countryIso2/states',
-        headers: _headers,
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        final states = data.map((json) => State.fromJson(json)).toList();
-        return Result.success(states);
-      } else {
-        return Result.failure(
-            Exception('Failed to load states: ${response.statusCode}'));
-      }
-    } catch (e) {
-      return Result.failure(Exception('Network error: $e'));
-    }
-  }
-
-  /// Get state details
-  Future<Result<State>> getStateDetails(
-      String countryIso2, String stateIso2) async {
-    try {
-      final response = await _client.get(
-        '$_baseUrl/countries/$countryIso2/states/$stateIso2',
-        headers: _headers,
-      );
-
-      if (response.statusCode == 200) {
-        final data = response.data;
-        return Result.success(State.fromJson(data));
-      } else {
-        return Result.failure(
-            Exception('Failed to load state details: ${response.statusCode}'));
-      }
-    } catch (e) {
-      return Result.failure(Exception('Network error: $e'));
-    }
-  }
-
-  /// Get a list of cities by state and country
-  Future<Result<List<City>>> getCitiesByStateAndCountry(
-      String countryIso2, String stateIso2) async {
-    try {
-      final response = await _client.get(
-        '$_baseUrl/countries/$countryIso2/states/$stateIso2/cities',
-        headers: _headers,
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        final cities = data.map((json) => City.fromJson(json)).toList();
-        return Result.success(cities);
-      } else {
-        return Result.failure(
-            Exception('Failed to load cities: ${response.statusCode}'));
-      }
-    } catch (e) {
-      return Result.failure(Exception('Network error: $e'));
-    }
-  }
-
-  /// Get a list of cities by country
-  Future<Result<List<City>>> getCitiesByCountry(String countryIso2) async {
-    try {
-      final response = await _client.get(
-        '$_baseUrl/countries/$countryIso2/cities',
-        headers: _headers,
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        final cities = data.map((json) => City.fromJson(json)).toList();
-        return Result.success(cities);
-      } else {
-        return Result.failure(
-            Exception('Failed to load cities: ${response.statusCode}'));
-      }
-    } catch (e) {
-      return Result.failure(Exception('Network error: $e'));
-    }
-  }
 }
