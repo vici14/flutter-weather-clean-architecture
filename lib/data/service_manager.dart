@@ -16,6 +16,9 @@ class ServiceManager {
   LocationService? _locationService;
   WeatherService? _weatherService;
 
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
+
   /// Initialize all services with required configurations
   void initialize({
     required String locationApiKey,
@@ -44,13 +47,25 @@ class ServiceManager {
       apiKey: weatherApiKey,
       client: weatherClient,
     );
+
+    _isInitialized = true;
   }
 
   /// Get the location service
   LocationService get locationService {
     if (_locationService == null) {
-      throw StateError(
-          'LocationService not initialized. Call initialize() first.');
+      // Create a fallback service with empty API key if not initialized
+      final locationClient = ApiClient(
+        interceptors: [
+          LoggingInterceptor(),
+          LocationInterceptor(),
+        ],
+      );
+
+      _locationService = LocationService(
+        apiKey: '',
+        client: locationClient,
+      );
     }
     return _locationService!;
   }
@@ -58,8 +73,18 @@ class ServiceManager {
   /// Get the weather service
   WeatherService get weatherService {
     if (_weatherService == null) {
-      throw StateError(
-          'WeatherService not initialized. Call initialize() first.');
+      // Create a fallback service with empty API key if not initialized
+      final weatherClient = ApiClient(
+        interceptors: [
+          LoggingInterceptor(),
+          WeatherInterceptor(),
+        ],
+      );
+
+      _weatherService = WeatherService(
+        apiKey: '',
+        client: weatherClient,
+      );
     }
     return _weatherService!;
   }
