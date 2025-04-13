@@ -1,3 +1,5 @@
+import '../models/weather_forecast.dart';
+import '../models/weather_result.dart';
 import '../services/weather_service.dart';
 
 abstract class IWeatherRepository {
