@@ -41,11 +41,6 @@ Future<void> setupServiceLocator() async {
       () => LocationRepository(getIt<ServiceManager>()),
     );
 
-    // Cubits
-    getIt.registerLazySingleton<WeatherBloc>(
-      () => WeatherBloc(getIt<IWeatherRepository>()),
-    );
-
     // Blocs
     getIt.registerLazySingleton<LocationBloc>(
       () => LocationBloc(getIt<ILocationRepository>()),

@@ -5,6 +5,7 @@ import '../../../core/dependency_injection/service_locator.dart';
 import '../../../core/services/loading_manager.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/widgets/full_screen_loading.dart';
+import '../../../data/repositories/i_weather_repository.dart';
 import '../../location/bloc/location_bloc.dart';
 import '../../location/bloc/location_state.dart';
 import '../bloc/weather_bloc.dart';
@@ -48,6 +49,7 @@ class _WeatherPageState extends State<WeatherPage>
   void dispose() {
     _todayForecastAnimationController.dispose();
     _fourDayForecastAnimationController.dispose();
+    context.read<WeatherBloc>().close();
     super.dispose();
   }
 
@@ -63,8 +65,7 @@ class _WeatherPageState extends State<WeatherPage>
     });
   }
 
-  void _fetchWeatherData() {
-    final weatherBloc = context.read<WeatherBloc>();
+  void _fetchWeatherData(WeatherBloc weatherBloc) {
     final locationBloc = context.read<LocationBloc>();
 
     if (locationBloc.state.countryDetails != null &&
@@ -79,51 +80,55 @@ class _WeatherPageState extends State<WeatherPage>
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<LocationBloc, LocationState>(
-      listenWhen: (previous, current) =>
-          previous.countryDetailsLoadingState !=
-          current.countryDetailsLoadingState,
-      listener: (context, locationState) {
-        if (locationState.countryDetailsLoadingState.isLoadedSuccess) {
-          _fetchWeatherData();
-        }
-      },
-      builder: (context, locationState) {
-        return BlocBuilder<WeatherBloc, WeatherState>(
-          builder: (context, weatherState) {
-            if (weatherState.forecastLoadingState.loadError != null) {
-              return ErrorScreen(
-                onRetry: _fetchCountryDetails,
-              );
-            }
-
-            return StreamBuilder<LoadingStatus>(
-              stream: getIt<LoadingManager>().loadingStream,
-              builder: (context, snapshot) {
-                // Only trigger animations when loading completes AND we have no errors
-                if (snapshot.data == LoadingStatus.completed &&
-                    weatherState.forecastLoadingState.loadError == null) {
-                  if (mounted) {
-                    _todayForecastAnimationController.forward();
-                    Future.delayed(const Duration(milliseconds: 300), () {
-                      if (mounted) {
-                        _fourDayForecastAnimationController.forward();
-                      }
-                    });
-                  }
-                }
-
-                return Scaffold(
-                  backgroundColor: AppColors.appBackground,
-                  appBar: AppBar(
-                      title: const Text('Weather Details'), elevation: 0),
-                  body: _buildContent(context, weatherState, locationState),
+    return BlocProvider(
+      create: (context) => WeatherBloc(getIt<IWeatherRepository>()),
+      child: BlocConsumer<LocationBloc, LocationState>(
+        listenWhen: (previous, current) =>
+            previous.countryDetailsLoadingState !=
+            current.countryDetailsLoadingState,
+        listener: (context, locationState) {
+          if (locationState.countryDetailsLoadingState.isLoadedSuccess) {
+            _fetchWeatherData(context.read<WeatherBloc>());
+          }
+        },
+        builder: (context, locationState) {
+          return BlocBuilder<WeatherBloc, WeatherState>(
+            builder: (context, weatherState) {
+              if (weatherState.forecastLoadingState.loadError != null ||
+                  locationState.countryDetailsLoadingState.loadError != null) {
+                return ErrorScreen(
+                  onRetry: _fetchCountryDetails,
                 );
-              },
-            );
-          },
-        );
-      },
+              }
+
+              return StreamBuilder<LoadingStatus>(
+                stream: getIt<LoadingManager>().loadingStream,
+                builder: (context, snapshot) {
+                  // Only trigger animations when loading completes AND we have no errors
+                  if (snapshot.data == LoadingStatus.completed &&
+                      weatherState.forecastLoadingState.loadError == null) {
+                    if (mounted) {
+                      _todayForecastAnimationController.forward();
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        if (mounted) {
+                          _fourDayForecastAnimationController.forward();
+                        }
+                      });
+                    }
+                  }
+
+                  return Scaffold(
+                    backgroundColor: AppColors.appBackground,
+                    appBar: AppBar(
+                        title: const Text('Weather Details'), elevation: 0),
+                    body: _buildContent(context, weatherState, locationState),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 

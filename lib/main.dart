@@ -61,9 +61,6 @@ class _MyAppState extends State<MyApp> {
         BlocProvider<LocationBloc>.value(
           value: getIt<LocationBloc>(),
         ),
-        BlocProvider<WeatherBloc>.value(
-          value: getIt<WeatherBloc>(),
-        ),
       ],
       child: MaterialApp(
         navigatorKey: navigatorKey,
