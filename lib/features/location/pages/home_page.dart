@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:async';
 import '../../../core/dependency_injection/service_locator.dart';
+import '../../../core/services/network_checker.dart';
 import '../../../routes/app_routes.dart';
 import '../../../core/theme/theme.dart';
 import '../bloc/location_bloc.dart';
@@ -21,6 +23,7 @@ class _HomePageState extends State<HomePage>
   bool _showPinnedSearch = false;
   late AnimationController _animationController;
   late Animation<double> _opacityAnimation;
+  StreamSubscription<bool>? _networkSubscription;
 
   @override
   void initState() {
@@ -39,9 +42,27 @@ class _HomePageState extends State<HomePage>
       ),
     );
 
-
     // Add scroll listener to determine when to show pinned search
     _scrollController.addListener(_onScroll);
+
+    // Listen to network connectivity changes
+    _listenToNetworkChanges();
+  }
+
+  void _listenToNetworkChanges() {
+    final networkChecker = getIt<NetworkChecker>();
+
+    
+
+    // Listen to connection status changes
+    _networkSubscription =
+        networkChecker.connectionStatus.listen((isConnected) {
+      if (isConnected) {
+        context.read<LocationBloc>().getCountries();
+      }
+
+      
+    });
   }
 
   @override
@@ -50,6 +71,7 @@ class _HomePageState extends State<HomePage>
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _animationController.dispose();
+    _networkSubscription?.cancel();
     super.dispose();
   }
 

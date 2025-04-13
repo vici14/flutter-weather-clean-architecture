@@ -49,7 +49,6 @@ class _WeatherPageState extends State<WeatherPage>
   void dispose() {
     _todayForecastAnimationController.dispose();
     _fourDayForecastAnimationController.dispose();
-    context.read<WeatherBloc>().close();
     super.dispose();
   }
 

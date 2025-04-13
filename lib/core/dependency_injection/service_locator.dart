@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:flutter/material.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import '../../data/repositories/i_weather_repository.dart';
 import '../../data/repositories/weather_repository.dart';
 import '../../data/repositories/i_location_repository.dart';
@@ -10,16 +11,24 @@ import '../../data/service_manager.dart';
 import '../../core/services/firebase_manager.dart';
 import '../../core/services/secure_storage.dart';
 import '../../core/services/loading_manager.dart';
+import '../../core/services/network_checker.dart';
+import '../../routes/app_routes.dart';
 
 final getIt = GetIt.instance;
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> setupServiceLocator() async {
-  try {
-    // Services
+     // Register NetworkChecker
+    getIt.registerLazySingleton(() => InternetConnection());
+    getIt.registerLazySingleton<NetworkChecker>(
+        () => NetworkChecker(getIt<InternetConnection>()));
+         // Initial network check
+     // Services
     getIt.registerLazySingleton<SecureStorage>(() => SecureStorage());
     getIt.registerLazySingleton<LoadingManager>(
         () => LoadingManager(navigatorKey));
+
+
 
     getIt.registerLazySingleton<FirebaseManager>(() => FirebaseManager());
     getIt<FirebaseManager>().setSecureStorage(getIt<SecureStorage>());
@@ -46,7 +55,6 @@ Future<void> setupServiceLocator() async {
       () => LocationBloc(getIt<ILocationRepository>()),
     );
     getIt<LocationBloc>().getCountries();
-  } catch (e) {
-    print("setupServiceLocator error:${e.toString()}");
-  }
+
 }
+ 
