@@ -1,3 +1,5 @@
+import '../models/weather_forecast.dart';
+import '../models/weather_result.dart';
 import '../service_manager.dart';
 import '../services/weather_service.dart';
 import 'i_weather_repository.dart';
