@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'package:fpdart/fpdart.dart';
+import 'package:dio/dio.dart';
 import '../api_client.dart';
 import '../models/weather_forecast.dart';
-import '../models/weather_result.dart';
+import '../exception/DataException.dart';
+import '../../core/utils/network_error_handler.dart';
 
 /// Service to handle weather-related API requests
 class WeatherService {
@@ -16,7 +19,7 @@ class WeatherService {
   ApiClient get client => _client;
 
   /// Get weather forecast for a location
-  Future<WeatherResult<WeatherForecast>> getWeatherForecast({
+  Future<Either<DataException, WeatherForecast>> getWeatherForecast({
     required double lat,
     required double lon,
     String units = 'metric',
@@ -35,18 +38,23 @@ class WeatherService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        return WeatherResult.success(WeatherForecast.fromJson(data));
+        return right(WeatherForecast.fromJson(data));
       } else {
-        return WeatherResult.failure(Exception(
-            'Failed to load weather forecast: ${response.statusCode}'));
+        return left(NetworkErrorHandler.createHttpException(
+          response.statusCode ?? 0,
+          response.data,
+          customMessage: 'Failed to load weather forecast',
+        ));
       }
+    } on DioException catch (e) {
+      return left(NetworkErrorHandler.handleDioException(e));
     } catch (e) {
-      return WeatherResult.failure(Exception('Network error: $e'));
+      return left(NetworkErrorHandler.createGenericException(e));
     }
   }
 
   /// Get 4 days ahead forecast for a location
-  Future<WeatherResult<List<DailyForecast>>> getFourDaysForecast({
+  Future<Either<DataException, List<DailyForecast>>> getFourDaysForecast({
     required double lat,
     required double lon,
     String units = 'metric',
@@ -57,13 +65,9 @@ class WeatherService {
       units: units,
     );
 
-    if (forecastResult.isSuccess && forecastResult.data != null) {
-      // Filter to get only the next 4 days (excluding today)
-      final fourDaysForecast = forecastResult.data!.daily.toList();
-      return WeatherResult.success(fourDaysForecast);
-    } else {
-      return WeatherResult.failure(
-          forecastResult.error ?? Exception('Unknown error'));
-    }
+    return forecastResult.fold(
+      (error) => left(error),
+      (forecast) => right(forecast.daily.toList()),
+    );
   }
 }

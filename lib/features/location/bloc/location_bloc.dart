@@ -1,11 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:weather_app_assignment/core/dependency_injection/service_locator.dart';
 import 'package:weather_app_assignment/core/error/AppError.dart';
+import 'package:weather_app_assignment/core/error/error_handler.dart';
 import 'package:weather_app_assignment/data/models/city.dart';
 import 'package:weather_app_assignment/data/models/country.dart';
 import 'package:weather_app_assignment/data/models/state.dart';
 
 import '../../../core/base/bloc/base_bloc.dart';
 import '../../../core/base/bloc/loading_state.dart';
+import '../../../core/services/loading_manager.dart';
 import '../../../data/repositories/i_location_repository.dart';
 import 'location_event.dart';
 import 'location_state.dart';
@@ -33,28 +37,31 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
     try {
       final result = await _locationRepository.getAllCountries();
 
-      if (result.isSuccess && result.data != null) {
+      result.fold(
+          // Error case
+          (exception) {
+        emit(state.copyWith(
+          countriesLoadingState:
+              LoadingState.error(ErrorHandler.handleError(exception)),
+          timeStamp: DateTime.now().millisecondsSinceEpoch,
+        ));
+      },
+          // Success case
+          (countries) {
         emit(state.copyWith(
           countriesLoadingState: LoadingState<List<Country>>(
             isLoading: false,
             isLoadedSuccess: true,
-            value: result.data,
+            value: countries,
           ),
-          countries: result.data,
-          allCountries: result.data,
+          countries: countries,
+          allCountries: countries,
           timeStamp: DateTime.now().millisecondsSinceEpoch,
         ));
-      } else {
-        emit(state.copyWith(
-          countriesLoadingState: LoadingState.error(
-              AppError(message: 'Failed to load countries: ${result.error}')),
-          timeStamp: DateTime.now().millisecondsSinceEpoch,
-        ));
-      }
+      });
     } catch (e) {
       emit(state.copyWith(
-        countriesLoadingState: LoadingState.error(
-            AppError(message: 'Failed to load countries: ${e.toString()}')),
+        countriesLoadingState: LoadingState.error(ErrorHandler.handleError(e)),
         timeStamp: DateTime.now().millisecondsSinceEpoch,
       ));
     }
@@ -120,7 +127,7 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
       // Handle errors
       emit(state.copyWith(
         searchLoadingState: LoadingState.error(
-          AppError(message: 'Failed to search locations: ${e.toString()}'),
+          ErrorHandler.handleError(e),
         ),
         timeStamp: DateTime.now().millisecondsSinceEpoch,
       ));
@@ -168,34 +175,39 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
     try {
       final result = await _locationRepository.getCountryDetails(event.iso2);
 
-      if (result.isSuccess && result.data != null) {
+      result.fold(
+          // Error case
+          (exception) {
+        emit(state.copyWith(
+          countryDetailsLoadingState: LoadingState.error(
+            ErrorHandler.handleError(exception),
+          ),
+          timeStamp: DateTime.now().millisecondsSinceEpoch,
+        ));
+        getIt<LoadingManager>().hideLoading();
+      },
+          // Success case
+          (country) {
         emit(state.copyWith(
           countryDetailsLoadingState: LoadingState<Country>(
             isLoading: false,
             isLoadedSuccess: true,
-            value: result.data,
+            value: country,
           ),
-          countryDetails: result.data,
+          countryDetails: country,
           timeStamp: DateTime.now().millisecondsSinceEpoch,
         ));
-      } else {
-        emit(state.copyWith(
-          countryDetailsLoadingState: LoadingState.error(
-            AppError(
-                message: 'Failed to load country details: ${result.error}'),
-          ),
-          timeStamp: DateTime.now().millisecondsSinceEpoch,
-        ));
-      }
+      });
     } catch (e) {
       emit(state.copyWith(
         countryDetailsLoadingState: LoadingState.error(
-          AppError(message: 'Failed to load country details: ${e.toString()}'),
+          ErrorHandler.handleError(e),
         ),
         timeStamp: DateTime.now().millisecondsSinceEpoch,
       ));
     }
   }
+
   void getCountries() {
     add(GetCountriesEvent());
   }

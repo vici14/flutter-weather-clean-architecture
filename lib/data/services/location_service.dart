@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'package:fpdart/fpdart.dart';
+import 'package:dio/dio.dart';
 import '../api_client.dart';
 import '../models/city.dart';
 import '../models/country.dart';
-import '../models/result.dart';
 import '../models/state.dart';
-import '../repositories/i_location_repository.dart';
+import '../exception/DataException.dart';
+import '../../core/utils/network_error_handler.dart';
 
 /// Service to handle location-related API requests
 class LocationService {
@@ -24,7 +26,7 @@ class LocationService {
       };
 
   /// Get a list of all countries
-  Future<Result<List<Country>>> getAllCountries() async {
+  Future<Either<DataException, List<Country>>> getAllCountries() async {
     try {
       final response = await _client.get(
         '$_baseUrl/countries',
@@ -34,18 +36,23 @@ class LocationService {
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
         final countries = data.map((json) => Country.fromJson(json)).toList();
-        return Result.success(countries);
+        return right(countries);
       } else {
-        return Result.failure(
-            Exception('Failed to load countries: ${response.statusCode}'));
+        return left(NetworkErrorHandler.createHttpException(
+          response.statusCode ?? 0,
+          response.data,
+          customMessage: 'Failed to load countries',
+        ));
       }
+    } on DioException catch (e) {
+      return left(NetworkErrorHandler.handleDioException(e));
     } catch (e) {
-      return Result.failure(Exception('Network error: $e'));
+      return left(NetworkErrorHandler.createGenericException(e));
     }
   }
 
   /// Get country details from ISO2 code
-  Future<Result<Country>> getCountryDetails(String iso2) async {
+  Future<Either<DataException, Country>> getCountryDetails(String iso2) async {
     try {
       final response = await _client.get(
         '$_baseUrl/countries/$iso2',
@@ -54,14 +61,18 @@ class LocationService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        return Result.success(Country.fromJson(data));
+        return right(Country.fromJson(data));
       } else {
-        return Result.failure(Exception(
-            'Failed to load country details: ${response.statusCode}'));
+        return left(NetworkErrorHandler.createHttpException(
+          response.statusCode ?? 0,
+          response.data,
+          customMessage: 'Failed to load country details',
+        ));
       }
+    } on DioException catch (e) {
+      return left(NetworkErrorHandler.handleDioException(e));
     } catch (e) {
-      return Result.failure(Exception('Network error: $e'));
+      return left(NetworkErrorHandler.createGenericException(e));
     }
   }
-
 }

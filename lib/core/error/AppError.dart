@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:weather_app_assignment/data/exception/DataException.dart';
 
-
-
 class AppError {
   String? title;
   String? message;
@@ -19,13 +17,12 @@ class AppError {
     this.message,
     this.extraJson,
     this.debugMessage,
+    this.isNetworkException = false,
   });
 
   @override
   String toString() =>
       "title:${title}\nerrorMessage:${message}\nerrorCode:${errorCode}\ndebugMessage:${debugMessage}\nextraJson:${extraJson.toString()}";
-
-
 
   AppError.fromPlatformException(PlatformException platformException) {
     title = platformException.code;

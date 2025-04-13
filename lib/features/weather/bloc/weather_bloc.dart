@@ -1,12 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fpdart/fpdart.dart';
 
 import '../../../core/base/bloc/base_bloc.dart';
 import '../../../core/base/bloc/loading_state.dart';
 import '../../../core/dependency_injection/service_locator.dart';
 import '../../../core/error/AppError.dart';
+import '../../../core/error/error_handler.dart';
 import '../../../core/services/loading_manager.dart';
 import '../../../data/models/weather_forecast.dart';
 import '../../../data/repositories/i_weather_repository.dart';
+import '../../../data/exception/DataException.dart';
 import 'weather_event.dart';
 import 'weather_state.dart';
 
@@ -34,37 +37,40 @@ class WeatherBloc extends BaseBloc<WeatherEvent, WeatherState> {
         units: event.units,
       );
       // await Future.delayed(const Duration(seconds: 2));
-      if (result.isSuccess && result.data != null) {
-        var todayForecast = result.data!.first;
+
+      result.fold(
+          // Error case
+          (exception) {
+        emit(state.copyWith(
+          forecastLoadingState:
+              LoadingState.error(ErrorHandler.handleError(exception)),
+          timeStamp: DateTime.now().millisecondsSinceEpoch,
+        ));
+      },
+          // Success case
+          (forecasts) {
+        var todayForecast = forecasts.first;
 
         // filter the data to get only the next 4 days (exclude today)
-        var filteredData = result.data!.take(5).skip(1).toList();
+        var filteredData = forecasts.take(5).skip(1).toList();
 
         emit(state.copyWith(
           forecastLoadingState: LoadingState<List<DailyForecast>>(
             isLoading: false,
             isLoadedSuccess: true,
-            value: result.data,
+            value: forecasts,
           ),
           forecast: filteredData,
           todayForecast: todayForecast,
           timeStamp: DateTime.now().millisecondsSinceEpoch,
         ));
-      } else {
-        // Update with error state
-        emit(state.copyWith(
-          forecastLoadingState: LoadingState.error(
-              AppError(message: 'Failed to load forecast: ${result.error}')),
-          timeStamp: DateTime.now().millisecondsSinceEpoch,
-        ));
-      }
-      getIt<LoadingManager>().forceHideLoading();
+      });
 
+      getIt<LoadingManager>().forceHideLoading();
     } catch (e) {
       // Update with error state
       emit(state.copyWith(
-        forecastLoadingState: LoadingState.error(
-            AppError(message: 'Failed to load forecast: ${e.toString()}')),
+        forecastLoadingState: LoadingState.error(ErrorHandler.handleError(e)),
         timeStamp: DateTime.now().millisecondsSinceEpoch,
       ));
     }

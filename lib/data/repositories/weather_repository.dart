@@ -1,7 +1,8 @@
+import 'package:fpdart/fpdart.dart';
 import '../models/weather_forecast.dart';
-import '../models/weather_result.dart';
 import '../service_manager.dart';
 import '../services/weather_service.dart';
+import '../exception/DataException.dart';
 import 'i_weather_repository.dart';
 
 class WeatherRepository implements IWeatherRepository {
@@ -11,7 +12,7 @@ class WeatherRepository implements IWeatherRepository {
       : _serviceManager = serviceManager;
 
   @override
-  Future<WeatherResult<WeatherForecast>> getWeatherForecast({
+  Future<Either<DataException, WeatherForecast>> getWeatherForecast({
     required double lat,
     required double lon,
     String units = 'metric',
@@ -24,7 +25,7 @@ class WeatherRepository implements IWeatherRepository {
   }
 
   @override
-  Future<WeatherResult<List<DailyForecast>>> getFourDaysForecast({
+  Future<Either<DataException, List<DailyForecast>>> getFourDaysForecast({
     required double lat,
     required double lon,
     String units = 'metric',
