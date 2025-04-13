@@ -39,8 +39,6 @@ class _HomePageState extends State<HomePage>
       ),
     );
 
-    // Load countries when the page is initialized
-    context.read<LocationBloc>().loadCountries();
 
     // Add scroll listener to determine when to show pinned search
     _scrollController.addListener(_onScroll);
