@@ -1,14 +1,12 @@
 import 'package:equatable/equatable.dart';
 
 abstract class BaseBlocState extends Equatable {
-  final bool isLoading;
-  final int timeStamp;
-  final String baseError;
-
+   final int timeStamp;
+ 
   const BaseBlocState(
-      {this.isLoading = true, this.timeStamp = 1, this.baseError = ''})
+      { this.timeStamp = 1})
       : super();
 
   @override
-  List<Object> get props => [isLoading, timeStamp];
+  List<Object> get props => [ timeStamp];
 }
