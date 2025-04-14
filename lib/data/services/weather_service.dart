@@ -3,7 +3,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:dio/dio.dart';
 import '../api_client.dart';
 import '../models/weather_forecast.dart';
-import '../exception/DataException.dart';
+import 'package:weather_app_assignment/data/exception/DataException.dart';
 import '../../core/utils/network_error_handler.dart';
 
 /// Service to handle weather-related API requests

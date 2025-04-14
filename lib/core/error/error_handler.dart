@@ -3,8 +3,8 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
-import '../../data/exception/DataException.dart';
-import 'AppError.dart';
+import 'package:weather_app_assignment/data/exception/DataException.dart';
+import 'package:weather_app_assignment/core/error/AppError.dart';
 
 enum ErrorCategory {
   network,

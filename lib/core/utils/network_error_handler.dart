@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import '../../data/exception/DataException.dart';
+import 'package:weather_app_assignment/data/exception/DataException.dart';
 
 /// Utility class to handle network errors consistently across the app
 class NetworkErrorHandler {

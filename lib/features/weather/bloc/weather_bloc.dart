@@ -9,7 +9,7 @@ import '../../../core/error/error_handler.dart';
 import '../../../core/services/loading_manager.dart';
 import '../../../data/models/weather_forecast.dart';
 import '../../../data/repositories/i_weather_repository.dart';
-import '../../../data/exception/DataException.dart';
+import 'package:weather_app_assignment/data/exception/DataException.dart';
 import 'weather_event.dart';
 import 'weather_state.dart';
 

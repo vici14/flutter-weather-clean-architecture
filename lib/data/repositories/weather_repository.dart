@@ -2,7 +2,7 @@ import 'package:fpdart/fpdart.dart';
 import '../models/weather_forecast.dart';
 import '../service_manager.dart';
 import '../services/weather_service.dart';
-import '../exception/DataException.dart';
+import 'package:weather_app_assignment/data/exception/DataException.dart';
 import 'i_weather_repository.dart';
 
 class WeatherRepository implements IWeatherRepository {

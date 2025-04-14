@@ -173,7 +173,10 @@ class CountryListWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: () {
           context.read<LocationBloc>().onCountrySelected(country);
-          Navigator.pushNamed(context, AppRoutes.weatherDetails,);
+          Navigator.pushNamed(
+            context,
+            AppRoutes.weatherDetails,
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(12),

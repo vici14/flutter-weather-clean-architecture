@@ -1,6 +1,6 @@
-import 'package:weather_app_assignment/data/models/city.dart';
-import 'package:weather_app_assignment/data/models/country.dart';
-import 'package:weather_app_assignment/data/models/state.dart';
+import '../../../data/models/city.dart';
+import '../../../data/models/country.dart';
+import '../../../data/models/state.dart';
 
 import '../../../core/base/bloc/base_event.dart';
 
@@ -28,10 +28,8 @@ class GetCountryDetailsEvent extends LocationEvent {
 
 class ClearSelectionEvent extends LocationEvent {
   final bool clearCountry;
-  
 
   ClearSelectionEvent({
     this.clearCountry = false,
-    
   });
 }

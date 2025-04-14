@@ -52,16 +52,12 @@ class _HomePageState extends State<HomePage>
   void _listenToNetworkChanges() {
     final networkChecker = getIt<NetworkChecker>();
 
-    
-
     // Listen to connection status changes
     _networkSubscription =
         networkChecker.connectionStatus.listen((isConnected) {
       if (isConnected) {
         context.read<LocationBloc>().getCountries();
       }
-
-      
     });
   }
 
@@ -101,63 +97,63 @@ class _HomePageState extends State<HomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: NestedScrollView(
-          controller: _scrollController,
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverAppBar(
-                floating: true,
-                pinned: true,
-                snap: false,
-                expandedHeight: 120,
-                backgroundColor: AppColors.background,
-                centerTitle: true,
-                title: AnimatedBuilder(
-                  animation: _animationController,
-                  builder: (context, child) {
-                    return Opacity(
-                      opacity: _opacityAnimation.value,
-                      child: _showPinnedSearch
-                          ? Container(
-                              child: SearchFieldWidget(
-                                controller: _searchController,
-                                onSearch: _filterLocations,
-                                hintText: 'Search countries...',
-                                alwaysShowClear: true,
-                                padding: EdgeInsets.zero,
-                              ),
-                            )
-                          : null,
-                    );
-                  },
-                ),
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Padding(
-                    padding: const EdgeInsets.only(top: 5),
-                    child: AnimatedBuilder(
-                      animation: _animationController,
-                      builder: (context, child) {
-                        return Opacity(
-                          opacity: 1.0 - _opacityAnimation.value,
-                          child: Container(
-                            padding: const EdgeInsets.fromLTRB(8, 24, 16, 8),
+      body: NestedScrollView(
+        controller: _scrollController,
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              floating: true,
+              pinned: true,
+              snap: false,
+              expandedHeight: 120,
+              backgroundColor: AppColors.background,
+              centerTitle: true,
+              title: AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _opacityAnimation.value,
+                    child: _showPinnedSearch
+                        ? Container(
                             child: SearchFieldWidget(
                               controller: _searchController,
                               onSearch: _filterLocations,
                               hintText: 'Search countries...',
+                              alwaysShowClear: true,
+                              padding: EdgeInsets.zero,
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                          )
+                        : null,
+                  );
+                },
+              ),
+              flexibleSpace: FlexibleSpaceBar(
+                background: Padding(
+                  padding: const EdgeInsets.only(top: 5),
+                  child: AnimatedBuilder(
+                    animation: _animationController,
+                    builder: (context, child) {
+                      return Opacity(
+                        opacity: 1.0 - _opacityAnimation.value,
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(8, 24, 16, 8),
+                          child: _showPinnedSearch
+                              ? null
+                              : SearchFieldWidget(
+                                  controller: _searchController,
+                                  onSearch: _filterLocations,
+                                  hintText: 'Search countries...',
+                                ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
-            ];
-          },
-          body: const CountryListWidget(),
-        ),
+            ),
+          ];
+        },
+        body: const CountryListWidget(),
       ),
     );
   }

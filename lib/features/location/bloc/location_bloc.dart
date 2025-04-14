@@ -3,9 +3,9 @@ import 'package:fpdart/fpdart.dart';
 import 'package:weather_app_assignment/core/dependency_injection/service_locator.dart';
 import 'package:weather_app_assignment/core/error/AppError.dart';
 import 'package:weather_app_assignment/core/error/error_handler.dart';
-import 'package:weather_app_assignment/data/models/city.dart';
-import 'package:weather_app_assignment/data/models/country.dart';
-import 'package:weather_app_assignment/data/models/state.dart';
+import '../../../data/models/city.dart';
+import '../../../data/models/country.dart';
+import '../../../data/models/state.dart';
 
 import '../../../core/base/bloc/base_bloc.dart';
 import '../../../core/base/bloc/loading_state.dart';
