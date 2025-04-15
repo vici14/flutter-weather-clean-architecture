@@ -50,4 +50,14 @@ class WeatherState extends BaseBlocState {
               sunset: 0,
             ),
       ];
+
+  @override
+  bool get hasInitializeError =>
+      !forecastLoadingState.isLoading && forecastLoadingState.loadError != null;
+
+  @override
+  bool get isInitialLoading => forecastLoadingState.isLoading;
+
+  @override
+  List<LoadingState> get loadingStates => [forecastLoadingState];
 }

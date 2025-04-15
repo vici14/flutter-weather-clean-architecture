@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../widgets/full_screen_loading.dart';
 
-enum LoadingStatus { started, completed }
+enum LoadingStatus { initial, loading, success, error }
 
 class LoadingManager {
   final GlobalKey<NavigatorState> _navigatorKey;
@@ -23,7 +23,7 @@ class LoadingManager {
   void showLoading() {
     if (_loadingCounter == 0) {
       _createOverlayEntry();
-      _loadingController.add(LoadingStatus.started);
+      _loadingController.add(LoadingStatus.loading);
     }
     _loadingCounter++;
   }
@@ -33,7 +33,7 @@ class LoadingManager {
       _loadingCounter--;
       if (_loadingCounter == 0) {
         _removeOverlayEntry();
-        _loadingController.add(LoadingStatus.completed);
+        _loadingController.add(LoadingStatus.success);
       }
     }
   }
@@ -41,7 +41,7 @@ class LoadingManager {
   void showLoadingWithMessage(String message) {
     if (_loadingCounter == 0) {
       _createOverlayEntryWithMessage(message);
-      _loadingController.add(LoadingStatus.started);
+      _loadingController.add(LoadingStatus.loading);
     } else {
       // Replace existing overlay with new message
       _removeOverlayEntry();
@@ -54,7 +54,7 @@ class LoadingManager {
   void forceHideLoading() {
     _loadingCounter = 0;
     _removeOverlayEntry();
-    _loadingController.add(LoadingStatus.completed);
+    _loadingController.add(LoadingStatus.success);
   }
 
   // Clean up resources

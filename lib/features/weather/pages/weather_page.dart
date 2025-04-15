@@ -12,8 +12,10 @@ import '../bloc/weather_bloc.dart';
 import '../bloc/weather_event.dart';
 import '../bloc/weather_state.dart';
 import '../../../core/widgets/error_screen.dart';
+import '../../../core/base/screen/multi_bloc_base_screen.dart';
+import '../../../core/base/bloc/base_bloc_state.dart';
 
-class WeatherPage extends StatefulWidget {
+class WeatherPage extends MultiProviderBlocScreen {
   const WeatherPage({
     Key? key,
   }) : super(key: key);
@@ -22,11 +24,13 @@ class WeatherPage extends StatefulWidget {
   State<WeatherPage> createState() => _WeatherPageState();
 }
 
-class _WeatherPageState extends State<WeatherPage>
+class _WeatherPageState extends MultiProviderBlocScreenState<WeatherPage>
     with TickerProviderStateMixin {
   late AnimationController _todayForecastAnimationController;
   late AnimationController _fourDayForecastAnimationController;
 
+  late WeatherBloc _weatherBloc;
+  late LocationBloc _locationBloc;
   @override
   void initState() {
     super.initState();
@@ -42,7 +46,8 @@ class _WeatherPageState extends State<WeatherPage>
       duration: const Duration(milliseconds: 1000),
     );
 
-    _fetchCountryDetails();
+    _weatherBloc = WeatherBloc(getIt<IWeatherRepository>());
+    _locationBloc = getIt<LocationBloc>();
   }
 
   @override
@@ -52,25 +57,49 @@ class _WeatherPageState extends State<WeatherPage>
     super.dispose();
   }
 
+  @override
+  List<BlocProvider> createProviders() {
+    return [
+      BlocProvider<WeatherBloc>.value(value: _weatherBloc),
+      BlocProvider<LocationBloc>.value(value: _locationBloc),
+    ];
+  }
+
+  @override
+  List<StateAccessor> getStateAccessors(BuildContext context) {
+    final locationBloc = context.read<LocationBloc>();
+    return [
+      StateAccessor(locationBloc),
+      StateAccessor(_weatherBloc),
+    ];
+  }
+
+  @override
+  void initializeData(BuildContext context) {
+    _fetchCountryDetails();
+  }
+
+  @override
+  VoidCallback onRetry(BuildContext context) {
+    _fetchCountryDetails();
+    return () {};
+  }
+
   void _fetchCountryDetails() {
     final locationBloc = context.read<LocationBloc>();
     if (locationBloc.state.selectedCountry != null) {
       locationBloc
           .getCountryDetails(locationBloc.state.selectedCountry?.iso2 ?? '');
     }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      getIt<LoadingManager>().showLoading();
-    });
   }
 
-  void _fetchWeatherData(WeatherBloc weatherBloc) {
+  void _fetchWeatherData() {
     final locationBloc = context.read<LocationBloc>();
 
     if (locationBloc.state.countryDetails != null &&
         locationBloc.state.countryDetails!.latitude != null &&
         locationBloc.state.countryDetails!.longitude != null) {
-      weatherBloc.getWeatherForLocation(
+      _weatherBloc.getWeatherForLocation(
         lat: double.parse(locationBloc.state.countryDetails!.latitude!),
         lon: double.parse(locationBloc.state.countryDetails!.longitude!),
       );
@@ -78,56 +107,38 @@ class _WeatherPageState extends State<WeatherPage>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => WeatherBloc(getIt<IWeatherRepository>()),
-      child: BlocConsumer<LocationBloc, LocationState>(
-        listenWhen: (previous, current) =>
-            previous.countryDetailsLoadingState !=
-            current.countryDetailsLoadingState,
-        listener: (context, locationState) {
-          if (locationState.countryDetailsLoadingState.isLoadedSuccess) {
-            _fetchWeatherData(context.read<WeatherBloc>());
+  void handleStateChange<B extends StateStreamable<S>, S extends BaseBlocState>(
+      BuildContext context, B bloc, S state) {
+    if (bloc is LocationBloc &&
+        state is LocationState &&
+        state.countryDetailsLoadingState.isLoadedSuccess) {
+      _fetchWeatherData();
+    }
+
+    if (bloc is WeatherBloc &&
+        state is WeatherState &&
+        state.forecastLoadingState.isLoadedSuccess) {
+      if (mounted) {
+        _todayForecastAnimationController.forward();
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) {
+            _fourDayForecastAnimationController.forward();
           }
-        },
-        builder: (context, locationState) {
-          return BlocBuilder<WeatherBloc, WeatherState>(
-            builder: (context, weatherState) {
-              if (weatherState.forecastLoadingState.loadError != null ||
-                  locationState.countryDetailsLoadingState.loadError != null) {
-                return ErrorScreen(
-                  onRetry: _fetchCountryDetails,
-                );
-              }
+        });
+      }
+    }
+  }
 
-              return StreamBuilder<LoadingStatus>(
-                stream: getIt<LoadingManager>().loadingStream,
-                builder: (context, snapshot) {
-                  // Only trigger animations when loading completes AND we have no errors
-                  if (snapshot.data == LoadingStatus.completed &&
-                      weatherState.forecastLoadingState.loadError == null) {
-                    if (mounted) {
-                      _todayForecastAnimationController.forward();
-                      Future.delayed(const Duration(milliseconds: 300), () {
-                        if (mounted) {
-                          _fourDayForecastAnimationController.forward();
-                        }
-                      });
-                    }
-                  }
+  @override
+  Widget buildContent(BuildContext context) {
+    // Access states directly since we're already using BlocConsumer in the base class
+    final locationState = context.read<LocationBloc>().state;
+    final weatherState = context.read<WeatherBloc>().state;
 
-                  return Scaffold(
-                    backgroundColor: AppColors.appBackground,
-                    appBar: AppBar(
-                        title: const Text('Weather Details'), elevation: 0),
-                    body: _buildContent(context, weatherState, locationState),
-                  );
-                },
-              );
-            },
-          );
-        },
-      ),
+    return Scaffold(
+      backgroundColor: AppColors.appBackground,
+      appBar: AppBar(title: const Text('Weather Details'), elevation: 0),
+      body: _buildContent(context, weatherState, locationState),
     );
   }
 

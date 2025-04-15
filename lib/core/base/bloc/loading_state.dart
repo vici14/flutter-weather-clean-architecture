@@ -7,16 +7,18 @@ class LoadingState<T> extends Equatable {
   final bool isLoading;
   final bool isLoadedSuccess;
   final AppError? loadError;
-  final T? _value;
-
-  T? get type => _value;
 
   const LoadingState({
     this.isLoading = false,
     this.isLoadedSuccess = false,
     this.loadError,
     T? value,
-  }) : _value = value;
+  });
+
+  @override
+  String toString() {
+    return 'LoadingState(type: $T,isLoading: $isLoading, isLoadedSuccess: $isLoadedSuccess, loadError: $loadError)';
+  }
 
   // Factory constructor for initial state
   factory LoadingState.initial() {
@@ -60,12 +62,15 @@ class LoadingState<T> extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       isLoadedSuccess: isLoadedSuccess ?? this.isLoadedSuccess,
       loadError: loadError ?? this.loadError,
-      value: value ?? _value,
     );
   }
 
   @override
-  List<Object?> get props => [isLoading, isLoadedSuccess, loadError, _value];
+  List<Object?> get props => [
+        isLoading,
+        isLoadedSuccess,
+        loadError,
+      ];
 }
 
 class LoaderState extends Equatable {

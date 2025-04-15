@@ -96,4 +96,14 @@ class LocationState extends BaseBlocState {
         query,
         errorMessage
       ];
+      
+        @override
+         bool get hasInitializeError => (!countryDetailsLoadingState.isLoading && countryDetailsLoadingState.loadError!= null) || 
+         (!countriesLoadingState.isLoading && countriesLoadingState.loadError!= null);
+
+  @override
+  bool get isInitialLoading => countryDetailsLoadingState.isLoading || countriesLoadingState.isLoading;
+  
+  @override
+  List<LoadingState> get loadingStates => [countryDetailsLoadingState,countriesLoadingState];
 }

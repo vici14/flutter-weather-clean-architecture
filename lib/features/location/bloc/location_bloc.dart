@@ -232,4 +232,10 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
       clearCountry: clearCountry,
     ));
   }
+  resetLoadCountryDetails(){
+    emit(state.copyWith(
+      countryDetailsLoadingState: LoadingState.initial(),
+      timeStamp: DateTime.now().millisecondsSinceEpoch,
+    ));
+  }
 }
