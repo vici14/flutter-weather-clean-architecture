@@ -239,6 +239,106 @@ flutter run -d macos
 flutter run -d chrome
 ```
 
+## Running Tests with Coverage
+
+This project implements a comprehensive testing strategy that includes unit, widget, and integration tests. The testing architecture follows a structured approach to ensure code quality and reliability.
+
+### Testing Architecture
+
+The project uses a multi-layered testing approach:
+
+- **Unit Tests**: Test individual components in isolation
+- **Widget Tests**: Test UI components and their interactions
+- **Integration Tests**: Test end-to-end functionality across the app
+
+### Mocking Framework
+
+The project uses Mockito for standardized mocking through code generation:
+
+- **Centralized Mock Generation**: All mocks are defined in a single `mock_generators.dart` file using the `@GenerateNiceMocks` annotation
+- **Generated Mocks**: The build_runner automatically generates mock implementations in `mock_generators.mocks.dart`
+- **Standardized Test Helpers**: Common testing utilities and setup functions are available in the `test_helpers` directory
+
+### Test Setup
+
+Each test follows a standardized setup approach:
+
+1. Mock dependencies are initialized using the `TestSetup` class
+2. GetIt service locator is configured with mock implementations
+3. Default behaviors are defined for common mock objects
+4. Tests are executed in an isolated environment
+5. All dependencies are properly torn down after each test
+
+### Example: Widget Test
+
+```dart
+void main() {
+  late MockILocationRepository mockRepository;
+  late LocationBloc locationBloc;
+  
+  setUp(() {
+    final setup = TestSetup.setupLocationTest();
+    locationBloc = setup.bloc;
+    mockRepository = setup.repository;
+  });
+
+  tearDown(() {
+    locationBloc.close();
+    TestSetup.resetGetIt();
+  });
+  
+  testWidgets('displays countries when loaded', (tester) async {
+    // Test implementation
+  });
+}
+```
+
+### Testing Tools
+
+The project uses several key testing packages:
+
+- **flutter_test**: Standard Flutter testing framework
+- **bloc_test**: Testing utilities for BLoC pattern
+- **mockito**: Mock object generation and verification
+- **fpdart**: Functional programming utilities for testing error handling
+- **integration_test**: End-to-end testing capabilities
+
+### Running Tests
+
+To run tests with coverage reporting, use the provided `test.sh` script:
+
+```bash
+./test.sh
+```
+
+This script will:
+1. Run all tests with coverage
+2. Generate an HTML coverage report
+3. Verify that code coverage meets the 80% threshold
+4. Open the coverage report in your default browser
+
+### Required Dependencies
+
+Before running the test script, ensure you have the following tools installed:
+
+- **lcov**: Coverage reporting tool
+  ```bash
+  # On macOS
+  brew install lcov
+  
+  # On Ubuntu/Debian
+  sudo apt-get install lcov
+  ```
+
+- **bc**: Basic calculator utility (required for coverage threshold checking)
+  ```bash
+  # On macOS
+  brew install bc
+  
+  # On Ubuntu/Debian
+  sudo apt-get install bc
+  ```
+
 ## Development Workflow
 
 The project includes a helper script `flutter_dev.sh` with various commands:
