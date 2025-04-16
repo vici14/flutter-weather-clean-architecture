@@ -230,6 +230,8 @@ flutter pub run build_runner build --delete-conflicting-outputs
 flutter run -d android
 
 # For iOS
+ios/ pod install
+
 flutter run -d ios
 
 # For macOS
