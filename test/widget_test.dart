@@ -9,27 +9,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:mockito/mockito.dart';
 import 'package:weather_app_assignment/core/dependency_injection/service_locator.dart';
 import 'package:weather_app_assignment/data/repositories/i_location_repository.dart';
 import 'package:weather_app_assignment/features/location/bloc/location_bloc.dart';
 import 'package:weather_app_assignment/features/location/pages/home_page.dart';
 import 'package:weather_app_assignment/main.dart';
-import '../test/mocks/mock_location_repository.dart';
+import 'mocks/mock_generators.mocks.dart';
+import 'mocks/test_helpers.dart';
 
 void main() {
   late LocationBloc locationBloc;
-  late MockLocationRepository mockRepository;
+  late MockILocationRepository mockRepository;
 
   setUp(() {
-    mockRepository = MockLocationRepository();
-    GetIt.I.registerSingleton<ILocationRepository>(mockRepository);
+    setupTestDependencies();
+    mockRepository =
+        GetIt.instance<ILocationRepository>() as MockILocationRepository;
+
+    // Create a real LocationBloc with mock repository
     locationBloc = LocationBloc(mockRepository);
-    GetIt.I.registerSingleton<LocationBloc>(locationBloc);
+
+    // Register the bloc (if needed for specific tests)
+    if (GetIt.instance.isRegistered<LocationBloc>()) {
+      GetIt.instance.unregister<LocationBloc>();
+    }
+    GetIt.instance.registerSingleton<LocationBloc>(locationBloc);
   });
 
   tearDown(() {
     locationBloc.close();
-    GetIt.I.reset();
+    tearDownTestDependencies();
   });
 
   testWidgets('HomePage should render correctly', (WidgetTester tester) async {

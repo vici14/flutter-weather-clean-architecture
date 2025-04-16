@@ -1,7 +1,11 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecureStorage {
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final FlutterSecureStorage _storage;
+
+  // Constructor with optional storage parameter for testing
+  SecureStorage({FlutterSecureStorage? storage})
+      : _storage = storage ?? const FlutterSecureStorage();
 
   // Keys
   static const String locationApiKey = 'location_api_key';

@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:get_it/get_it.dart';
 import 'package:weather_app_assignment/core/base/bloc/loading_state.dart';
@@ -15,9 +14,9 @@ import 'package:weather_app_assignment/features/location/bloc/location_bloc.dart
 import 'package:weather_app_assignment/features/location/bloc/location_event.dart';
 import 'package:weather_app_assignment/features/location/bloc/location_state.dart';
 
- @GenerateNiceMocks(
-    [MockSpec<ILocationRepository>(), MockSpec<LoadingManager>()])
-import 'location_bloc_test.mocks.dart';
+// Use the centralized mock generators instead of local annotations
+import '../../../../mocks/mock_generators.mocks.dart';
+import '../../../../mocks/test_helpers.dart';
 
 void main() {
   late LocationBloc locationBloc;

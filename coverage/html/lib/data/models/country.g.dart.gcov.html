@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - lcov.info - lib/data/models/country.g.dart</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../../../index.html" title="Click to go to top-level">top level</a> - <a href="index.html" title="Click to go to directory lib/data/models">lib/data/models</a> - country.g.dart</td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">lcov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
+            <td class="headerCovTableEntry">50</td>
+            <td class="headerCovTableEntry">50</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2025-04-16 16:45:45</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryHi">-</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+          </tr>
+                  <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">            Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>              : // GENERATED CODE - DO NOT MODIFY BY HAND</span>
+<span id="L2"><span class="lineNum">       2</span>              : </span>
+<span id="L3"><span class="lineNum">       3</span>              : part of 'country.dart';</span>
+<span id="L4"><span class="lineNum">       4</span>              : </span>
+<span id="L5"><span class="lineNum">       5</span>              : // **************************************************************************</span>
+<span id="L6"><span class="lineNum">       6</span>              : // JsonSerializableGenerator</span>
+<span id="L7"><span class="lineNum">       7</span>              : // **************************************************************************</span>
+<span id="L8"><span class="lineNum">       8</span>              : </span>
+<span id="L9"><span class="lineNum">       9</span> <span class="tlaGNC">           2 : _$CountryImpl _$$CountryImplFromJson(Map&lt;String, dynamic&gt; json) =&gt;</span></span>
+<span id="L10"><span class="lineNum">      10</span> <span class="tlaGNC">           2 :     _$CountryImpl(</span></span>
+<span id="L11"><span class="lineNum">      11</span> <span class="tlaGNC">           4 :       id: (json['id'] as num).toInt(),</span></span>
+<span id="L12"><span class="lineNum">      12</span> <span class="tlaGNC">           2 :       name: json['name'] as String,</span></span>
+<span id="L13"><span class="lineNum">      13</span> <span class="tlaGNC">           2 :       iso2: json['iso2'] as String?,</span></span>
+<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">           2 :       iso3: json['iso3'] as String?,</span></span>
+<span id="L15"><span class="lineNum">      15</span> <span class="tlaGNC">           2 :       phonecode: json['phonecode'] as String?,</span></span>
+<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC">           2 :       capital: json['capital'] as String?,</span></span>
+<span id="L17"><span class="lineNum">      17</span> <span class="tlaGNC">           2 :       currency: json['currency'] as String?,</span></span>
+<span id="L18"><span class="lineNum">      18</span> <span class="tlaGNC">           2 :       native: json['native'] as String?,</span></span>
+<span id="L19"><span class="lineNum">      19</span> <span class="tlaGNC">           2 :       emoji: json['emoji'] as String?,</span></span>
+<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC">           2 :       numeric_code: json['numeric_code'] as String?,</span></span>
+<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">           2 :       currency_name: json['currency_name'] as String?,</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">           2 :       currency_symbol: json['currency_symbol'] as String?,</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">           2 :       tld: json['tld'] as String?,</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">           2 :       region: json['region'] as String?,</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">           3 :       region_id: (json['region_id'] as num?)?.toInt(),</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">           2 :       subregion: json['subregion'] as String?,</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">           3 :       subregion_id: (json['subregion_id'] as num?)?.toInt(),</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">           2 :       nationality: json['nationality'] as String?,</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">           2 :       timezones: json['timezones'] as String?,</span></span>
+<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC">           2 :       translations: json['translations'] as String?,</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           2 :       latitude: json['latitude'] as String?,</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">           2 :       longitude: json['longitude'] as String?,</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">           2 :       emojiU: json['emojiU'] as String?,</span></span>
+<span id="L34"><span class="lineNum">      34</span>              :     );</span>
+<span id="L35"><span class="lineNum">      35</span>              : </span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">           1 : Map&lt;String, dynamic&gt; _$$CountryImplToJson(_$CountryImpl instance) =&gt;</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">           1 :     &lt;String, dynamic&gt;{</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">           1 :       'id': instance.id,</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">           1 :       'name': instance.name,</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">           1 :       'iso2': instance.iso2,</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">           1 :       'iso3': instance.iso3,</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           1 :       'phonecode': instance.phonecode,</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">           1 :       'capital': instance.capital,</span></span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">           1 :       'currency': instance.currency,</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">           1 :       'native': instance.native,</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">           1 :       'emoji': instance.emoji,</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">           1 :       'numeric_code': instance.numeric_code,</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">           1 :       'currency_name': instance.currency_name,</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">           1 :       'currency_symbol': instance.currency_symbol,</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">           1 :       'tld': instance.tld,</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">           1 :       'region': instance.region,</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">           1 :       'region_id': instance.region_id,</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">           1 :       'subregion': instance.subregion,</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">           1 :       'subregion_id': instance.subregion_id,</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">           1 :       'nationality': instance.nationality,</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">           1 :       'timezones': instance.timezones,</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           1 :       'translations': instance.translations,</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           1 :       'latitude': instance.latitude,</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">           1 :       'longitude': instance.longitude,</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">           1 :       'emojiU': instance.emojiU,</span></span>
+<span id="L61"><span class="lineNum">      61</span>              :     };</span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com//linux-test-project/lcov" target="_parent">LCOV version 2.3.1-1</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>

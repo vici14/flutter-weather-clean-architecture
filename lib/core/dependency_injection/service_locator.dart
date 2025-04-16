@@ -20,6 +20,12 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 bool _isInitializingServices = false;
 bool _servicesInitialized = false;
 
+// For testing purposes only
+void resetServiceLocatorFlags() {
+  _isInitializingServices = false;
+  _servicesInitialized = false;
+}
+
 Future<bool> setupServiceLocator() async {
   if (_servicesInitialized) return true;
   if (_isInitializingServices) return false;

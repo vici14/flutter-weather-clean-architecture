@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:weather_app_assignment/firebase_options.dart';
 import 'package:weather_app_assignment/core/services/secure_storage.dart';
 
@@ -10,6 +11,7 @@ class FirebaseManager {
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
   bool _isSecureStorageSet = false;
+  bool _isTestMode = false;
 
   factory FirebaseManager() {
     return _instance;
@@ -24,8 +26,24 @@ class FirebaseManager {
     }
   }
 
+  /// Set test mode for unit testing purposes
+  /// When in test mode, Firebase initialization is skipped
+  void setTestMode(bool isTestMode) {
+    _isTestMode = isTestMode;
+    if (isTestMode) {
+      // Auto-mark as initialized in test mode
+      _isInitialized = true;
+    }
+  }
+
   Future<void> initialize() async {
     if (_isInitialized) return;
+
+    // Skip actual Firebase initialization in test mode
+    if (_isTestMode) {
+      _isInitialized = true;
+      return;
+    }
 
     try {
       // Initialize Firebase
@@ -61,7 +79,7 @@ class FirebaseManager {
         await _secureStorage.saveLocationApiKey(locationApiKey);
         await _secureStorage.saveWeatherApiKey(weatherApiKey);
       } catch (e) {
-        print('Firebase Remote Config fetch failed: $e');
+        debugPrint('Firebase Remote Config fetch failed: $e');
         // Continue with cached values if available
         try {
           // Try to get cached values without fetching
@@ -77,7 +95,7 @@ class FirebaseManager {
             await _secureStorage.saveWeatherApiKey(weatherApiKey);
           }
         } catch (innerError) {
-          print('Failed to get cached remote config: $innerError');
+          debugPrint('Failed to get cached remote config: $innerError');
           // Just continue with empty values
         }
       }
@@ -85,7 +103,7 @@ class FirebaseManager {
       _isInitialized = true;
     } catch (e) {
       // Firebase initialization failed, but we don't want to crash the app
-      print('Firebase initialization error: $e');
+      debugPrint('Firebase initialization error: $e');
       // Mark as not initialized so we can retry later
       _isInitialized = false;
       // Rethrow network related errors so they can be handled at a higher level
@@ -99,12 +117,13 @@ class FirebaseManager {
 
   Future<bool> retry() async {
     if (_isInitialized) return true;
+    if (_isTestMode) return true;
 
     try {
       await initialize();
       return _isInitialized;
     } catch (e) {
-      print('Firebase retry failed: $e');
+      debugPrint('Firebase retry failed: $e');
       return false;
     }
   }

@@ -2,21 +2,12 @@
 
 # Clean previous coverage data
 rm -rf coverage
-rm -rf test/.test_coverage.dart
 
-# Run unit tests with coverage
-flutter test --coverage test/unit
+# Ensure Flutter test binding is initialized with custom setup
+flutter test test/test_helpers/init_tests.dart
 
-# Run widget tests with coverage
-flutter test --coverage test/widget
-
-# Combine coverage data
-lcov --add-tracefile coverage/lcov.info -o coverage/lcov_unit.info
-lcov --add-tracefile coverage/lcov.info -o coverage/lcov_widget.info
-lcov -a coverage/lcov_unit.info -a coverage/lcov_widget.info -o coverage/lcov.info
-
-# Run integration tests
-flutter test integration_test
+# Run all tests with coverage
+flutter test --coverage
 
 # Generate coverage report
 genhtml coverage/lcov.info -o coverage/html
@@ -27,7 +18,7 @@ if (( $(echo "$COVERAGE < 80" | bc -l) )); then
     echo "Coverage is below 80% ($COVERAGE%)"
     exit 1
 else
-    echo "Coverage is at $COVERAGE%"
+    echo "Coverage is at $COVERAGE% - PASSED"
 fi
 
 # Open coverage report

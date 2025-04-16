@@ -12,20 +12,22 @@ import '../../../../../lib/data/models/country.dart';
 import '../../../../../lib/features/location/bloc/location_bloc.dart';
 import '../../../../../lib/features/location/bloc/location_state.dart';
 import '../../../../../lib/features/location/widgets/country_list_widget.dart';
-import '../../../../mocks/mock_location_repository.dart';
-import '../../../../mocks/repositories/location_repository_mock.dart';
+import '../../../../mocks/mock_generators.mocks.dart';
+import '../../../../mocks/test_helpers.dart';
 
 void main() {
-  late MockLocationRepository mockLocationRepository;
+  late MockILocationRepository mockLocationRepository;
   late LocationBloc locationBloc;
 
   setUp(() {
-    mockLocationRepository = MockLocationRepository();
+    setupTestDependencies();
+    mockLocationRepository = MockILocationRepository();
     locationBloc = LocationBloc(mockLocationRepository);
   });
 
   tearDown(() {
     locationBloc.close();
+    tearDownTestDependencies();
   });
 
   final mockCountries = [

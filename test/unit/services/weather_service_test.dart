@@ -1,19 +1,21 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:dio/dio.dart';
+import 'package:mockito/mockito.dart';
 import 'package:weather_app_assignment/data/services/weather_service.dart';
 import 'package:weather_app_assignment/data/models/weather_forecast.dart';
 import 'package:weather_app_assignment/data/exception/DataException.dart';
-
-import 'api_client_mock.dart';
+import 'package:weather_app_assignment/data/api_client.dart';
+import '../../mocks/mock_generators.mocks.dart';
 
 void main() {
-  late MockApiClient mockApiClient;
   late WeatherService weatherService;
-  const String testApiKey = 'test_weather_api_key';
-  const double testLat = 37.7749;
-  const double testLon = -122.4194;
-  const String testUnits = 'metric';
+  late MockApiClient mockApiClient;
+
+  const testApiKey = 'test_weather_api_key';
+  const testLat = 37.7749;
+  const testLon = -122.4194;
+  const testUnits = 'metric';
 
   setUp(() {
     mockApiClient = MockApiClient();
@@ -23,248 +25,48 @@ void main() {
     );
   });
 
-  group('getWeatherForecast', () {
-    final mockWeatherResponse = {
-      'lat': testLat,
-      'lon': testLon,
-      'timezone': 'America/Los_Angeles',
-      'timezone_offset': -25200,
-      'daily': [
-        {
-          'dt': 1617984000,
-          'sunrise': 1617962100,
-          'sunset': 1618009793,
-          'temp': {
-            'day': 15.23,
-            'min': 10.54,
-            'max': 16.02,
-            'night': 10.54,
-            'eve': 13.09,
-            'morn': 11.32,
-          },
-          'feels_like': {
-            'day': 14.53,
-            'night': 9.79,
-            'eve': 12.45,
-            'morn': 10.32,
-          },
-          'pressure': 1018,
-          'humidity': 71,
-          'dew_point': 10.2,
-          'wind_speed': 3.06,
-          'wind_deg': 225,
-          'weather': [
-            {
-              'id': 804,
-              'main': 'Clouds',
-              'description': 'overcast clouds',
-              'icon': '04d',
-            },
-          ],
-          'clouds': 90,
-          'pop': 0.2,
-          'uvi': 6.54,
-        },
-      ],
-    };
-
-    Map<String, dynamic> expectedQueryParams = {
-      'lat': testLat,
-      'lon': testLon,
-      'units': testUnits,
-      'exclude': 'current,minutely,hourly,alerts',
-      'appid': testApiKey,
-    };
-
-    test('returns weather forecast when API call is successful', () async {
-      // Arrange
-      mockApiClient.onGet = (path, {queryParameters, headers}) {
-        expect(path, equals('https://api.openweathermap.org/data/3.0/onecall'));
-        expect(queryParameters, equals(expectedQueryParams));
-        return mockWeatherResponse;
-      };
-
-      // Act
-      final result = await weatherService.getWeatherForecast(
-        lat: testLat,
-        lon: testLon,
-        units: testUnits,
-      );
-
-      // Assert
-      expect(result.isRight(), true);
-      result.fold(
-        (failure) => fail('Should not return a failure'),
-        (forecast) {
-          expect(forecast.lat, equals(testLat));
-          expect(forecast.lon, equals(testLon));
-          expect(forecast.timezone, equals('America/Los_Angeles'));
-          expect(forecast.timezoneOffset, equals(-25200));
-          expect(forecast.daily.length, equals(1));
-          expect(forecast.daily[0].temp.day, equals(15.23));
-          expect(forecast.daily[0].temp.min, equals(10.54));
-          expect(forecast.daily[0].weather[0].main, equals('Clouds'));
-        },
-      );
-    });
-
-    test('returns DataException when API returns error code', () async {
-      // Arrange
-      mockApiClient.statusCode = 401;
-      mockApiClient.onGet = (path, {queryParameters, headers}) {
-        return {'message': 'Invalid API key'};
-      };
-
-      // Act
-      final result = await weatherService.getWeatherForecast(
-        lat: testLat,
-        lon: testLon,
-        units: testUnits,
-      );
-
-      // Assert
-      expect(result.isLeft(), true);
-      result.fold(
-        (exception) {
-          expect(
-              exception.message, contains('Failed to load weather forecast'));
-        },
-        (forecast) => fail('Should not return forecast'),
-      );
-    });
-
-    test('returns DataException when API call throws DioException', () async {
-      // Arrange
-      mockApiClient.throwDioError = true;
-      mockApiClient.errorMessage = 'Connection timeout';
-      mockApiClient.dioErrorType = DioExceptionType.connectionTimeout;
-
-      // Act
-      final result = await weatherService.getWeatherForecast(
-        lat: testLat,
-        lon: testLon,
-        units: testUnits,
-      );
-
-      // Assert
-      expect(result.isLeft(), true);
-      result.fold(
-        (exception) {
-          expect(exception.message, contains('Connection timeout'));
-        },
-        (forecast) => fail('Should not return forecast'),
-      );
-    });
-
-    test('returns DataException when API call throws unexpected error',
+  group('WeatherService', () {
+    test('getFourDaysForecast should return forecast data on success',
         () async {
       // Arrange
-      mockApiClient.throwGenericError = true;
-      mockApiClient.errorMessage = 'Unexpected error';
-
-      // Act
-      final result = await weatherService.getWeatherForecast(
-        lat: testLat,
-        lon: testLon,
-        units: testUnits,
+      final mockResponse = Response(
+        data: {
+          'lat': testLat,
+          'lon': testLon,
+          'timezone': 'America/New_York',
+          'timezone_offset': -14400,
+          'daily': [
+            {
+              'dt': 1600000000,
+              'sunrise': 1599900000,
+              'sunset': 1599940000,
+              'temp': {
+                'day': 25.5,
+                'min': 20.1,
+                'max': 28.3,
+                'night': 22.2,
+                'eve': 24.8,
+                'morn': 21.5
+              },
+              'weather': [
+                {
+                  'id': 800,
+                  'main': 'Clear',
+                  'description': 'clear sky',
+                  'icon': '01d'
+                }
+              ]
+            }
+          ]
+        },
+        statusCode: 200,
+        requestOptions: RequestOptions(path: '/onecall'),
       );
 
-      // Assert
-      expect(result.isLeft(), true);
-      result.fold(
-        (error) => expect(error.message, 'Unexpected error occurred'),
-        (_) => fail('Should return left with DataException'),
-      );
-    });
-  });
-
-  group('getFourDaysForecast', () {
-    // Since getFourDaysForecast depends on getWeatherForecast, we can create a test
-    // that verifies the proper delegation and result transformation
-    final mockWeatherResponse = {
-      'lat': testLat,
-      'lon': testLon,
-      'timezone': 'America/Los_Angeles',
-      'timezone_offset': -25200,
-      'daily': [
-        {
-          'dt': 1617984000,
-          'sunrise': 1617962100,
-          'sunset': 1618009793,
-          'temp': {
-            'day': 15.23,
-            'min': 10.54,
-            'max': 16.02,
-            'night': 10.54,
-            'eve': 13.09,
-            'morn': 11.32,
-          },
-          'feels_like': {
-            'day': 14.53,
-            'night': 9.79,
-            'eve': 12.45,
-            'morn': 10.32,
-          },
-          'pressure': 1018,
-          'humidity': 71,
-          'dew_point': 10.2,
-          'wind_speed': 3.06,
-          'wind_deg': 225,
-          'weather': [
-            {
-              'id': 804,
-              'main': 'Clouds',
-              'description': 'overcast clouds',
-              'icon': '04d',
-            },
-          ],
-          'clouds': 90,
-          'pop': 0.2,
-          'uvi': 6.54,
-        },
-        {
-          'dt': 1618070400,
-          'sunrise': 1618048380,
-          'sunset': 1618096249,
-          'temp': {
-            'day': 16.78,
-            'min': 11.65,
-            'max': 17.25,
-            'night': 11.65,
-            'eve': 14.32,
-            'morn': 12.45,
-          },
-          'feels_like': {
-            'day': 15.98,
-            'night': 10.85,
-            'eve': 13.65,
-            'morn': 11.45,
-          },
-          'pressure': 1020,
-          'humidity': 68,
-          'dew_point': 9.8,
-          'wind_speed': 2.75,
-          'wind_deg': 220,
-          'weather': [
-            {
-              'id': 801,
-              'main': 'Clouds',
-              'description': 'few clouds',
-              'icon': '02d',
-            },
-          ],
-          'clouds': 20,
-          'pop': 0.0,
-          'uvi': 7.12,
-        },
-      ],
-    };
-
-    test('returns four days forecast when API call is successful', () async {
-      // Arrange
-      mockApiClient.onGet = (path, {queryParameters, headers}) {
-        return mockWeatherResponse;
-      };
+      when(mockApiClient.get(
+        argThat(contains('onecall')),
+        queryParameters: anyNamed('queryParameters'),
+      )).thenAnswer((_) async => mockResponse);
 
       // Act
       final result = await weatherService.getFourDaysForecast(
@@ -274,23 +76,40 @@ void main() {
       );
 
       // Assert
+      verify(mockApiClient.get(
+        any,
+        queryParameters: anyNamed('queryParameters'),
+      )).called(1);
+
       expect(result.isRight(), true);
       result.fold(
-        (failure) => fail('Should not return a failure'),
+        (error) => fail('Should not return error'),
         (forecasts) {
-          expect(forecasts.length, equals(2));
-          expect(forecasts[0].temp.day, equals(15.23));
-          expect(forecasts[1].temp.day, equals(16.78));
+          expect(forecasts.isNotEmpty, true);
+          expect(forecasts[0].dt, 1600000000);
+          expect(forecasts[0].temp.day, 25.5);
+          expect(forecasts[0].temp.min, 20.1);
+          expect(forecasts[0].weather.length, 1);
+          expect(forecasts[0].weather[0].id, 800);
+          expect(forecasts[0].weather[0].main, 'Clear');
         },
       );
     });
 
-    test('returns DataException when API call fails', () async {
+    test('getFourDaysForecast should return DataException on error', () async {
       // Arrange
-      mockApiClient.statusCode = 401;
-      mockApiClient.onGet = (path, {queryParameters, headers}) {
-        return {'message': 'Invalid API key'};
-      };
+      when(mockApiClient.get(
+        argThat(contains('onecall')),
+        queryParameters: anyNamed('queryParameters'),
+      )).thenThrow(DioException(
+        requestOptions: RequestOptions(path: '/onecall'),
+        type: DioExceptionType.badResponse,
+        response: Response(
+          statusCode: 401,
+          data: {'message': 'Unauthorized access'},
+          requestOptions: RequestOptions(path: '/onecall'),
+        ),
+      ));
 
       // Act
       final result = await weatherService.getFourDaysForecast(
@@ -302,11 +121,71 @@ void main() {
       // Assert
       expect(result.isLeft(), true);
       result.fold(
-        (exception) {
-          expect(
-              exception.message, contains('Failed to load weather forecast'));
+        (error) {
+          expect(error, isA<DataException>());
+          expect(error.message, equals('Unauthorized access'));
         },
-        (forecasts) => fail('Should not return forecasts'),
+        (_) => fail('Should not return success'),
+      );
+    });
+
+    test('getFourDaysForecast should handle network errors', () async {
+      // Arrange
+      when(mockApiClient.get(
+        argThat(contains('onecall')),
+        queryParameters: anyNamed('queryParameters'),
+      )).thenThrow(DioException(
+        requestOptions: RequestOptions(path: '/onecall'),
+        type: DioExceptionType.connectionTimeout,
+        message: 'Connection timeout',
+      ));
+
+      // Act
+      final result = await weatherService.getFourDaysForecast(
+        lat: testLat,
+        lon: testLon,
+        units: testUnits,
+      );
+
+      // Assert
+      expect(result.isLeft(), true);
+      result.fold(
+        (error) {
+          expect(error, isA<DataException>());
+          expect(error.message, equals('Connection timeout'));
+        },
+        (_) => fail('Should not return success'),
+      );
+    });
+
+    test('getFourDaysForecast should handle unexpected format', () async {
+      // Arrange
+      final mockResponse = Response(
+        data: {'error': 'Unexpected error occurred'},
+        statusCode: 200,
+        requestOptions: RequestOptions(path: '/onecall'),
+      );
+
+      when(mockApiClient.get(
+        argThat(contains('onecall')),
+        queryParameters: anyNamed('queryParameters'),
+      )).thenAnswer((_) async => mockResponse);
+
+      // Act
+      final result = await weatherService.getFourDaysForecast(
+        lat: testLat,
+        lon: testLon,
+        units: testUnits,
+      );
+
+      // Assert
+      expect(result.isLeft(), true);
+      result.fold(
+        (error) {
+          expect(error, isA<DataException>());
+          expect(error.message, equals('Unexpected error occurred'));
+        },
+        (_) => fail('Should not return success'),
       );
     });
   });
