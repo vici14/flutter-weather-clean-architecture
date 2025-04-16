@@ -207,8 +207,8 @@ class _WeatherPageState extends MultiProviderBlocScreenState<WeatherPage>
       children: [
         Center(
             child: Text(
-                weatherState.forecast.isNotEmpty
-                    ? '${weatherState.forecast.first.temp.day.round()}°'
+                weatherState.todayForecast != null
+                    ? '${weatherState.todayForecast?.temp.avgTemp}°'
                     : '--°',
                 style: AppTextStyles.temperatureStyle)),
         Center(
@@ -255,7 +255,7 @@ class _WeatherPageState extends MultiProviderBlocScreenState<WeatherPage>
                 return _buildForecastItem(
                   context,
                   day,
-                  '${forecast.temp.day.round()} C',
+                  '${forecast.temp.avgTemp.round()} C',
                 );
               },
             ),

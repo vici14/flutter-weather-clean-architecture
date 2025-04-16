@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/base/bloc/base_bloc.dart';
 import '../../../core/base/bloc/loading_state.dart';
@@ -36,7 +37,7 @@ class WeatherBloc extends BaseBloc<WeatherEvent, WeatherState> {
         lon: event.lon,
         units: event.units,
       );
-      // await Future.delayed(const Duration(seconds: 2));
+      //
 
       result.fold(
           // Error case
@@ -49,11 +50,17 @@ class WeatherBloc extends BaseBloc<WeatherEvent, WeatherState> {
       },
           // Success case
           (forecasts) {
-        var todayForecast = forecasts.first;
+        // write function to print all forecast data as date - max, min temp
+        print(
+            "result ${forecasts.map((e) => '${getDayName(e.dt)} -"avg:":${e.temp.avgTemp}- max: ${e.temp.max} -- min: ${e.temp.min}').join("\n")}");
 
+        var todayForecast = forecasts.first;
+        print(
+            "todayForecast ${getDayName(todayForecast.dt)} --- avg: ${todayForecast.temp.avgTemp} -- max: ${todayForecast.temp.max} -- min: ${todayForecast.temp.min} ");
         // filter the data to get only the next 4 days (exclude today)
         var filteredData = forecasts.take(5).skip(1).toList();
-
+        print(
+            "filteredData ${filteredData.map((e) => '${getDayName(e.dt)} -"avg:":${e.temp.avgTemp}- max: ${e.temp.max} -- min: ${e.temp.min}').join("\n")}");
         emit(state.copyWith(
           forecastLoadingState: LoadingState<List<DailyForecast>>(
             isLoading: false,
@@ -80,5 +87,10 @@ class WeatherBloc extends BaseBloc<WeatherEvent, WeatherState> {
   void getWeatherForLocation(
       {required double lat, required double lon, String units = 'metric'}) {
     add(GetWeatherForLocationEvent(lat: lat, lon: lon, units: units));
+  }
+
+  String getDayName(int timestamp) {
+    return DateFormat('EEEE')
+        .format(DateTime.fromMillisecondsSinceEpoch(timestamp * 1000));
   }
 }
