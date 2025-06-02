@@ -2,16 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../core/dependency_injection/service_locator.dart';
-import '../../../core/services/loading_manager.dart';
 import '../../../core/theme/theme.dart';
-import '../../../core/widgets/full_screen_loading.dart';
-import '../../../data/repositories/i_weather_repository.dart';
 import '../../location/bloc/location_bloc.dart';
 import '../../location/bloc/location_state.dart';
 import '../bloc/weather_bloc.dart';
-import '../bloc/weather_event.dart';
 import '../bloc/weather_state.dart';
-import '../../../core/widgets/error_screen.dart';
 import '../../../core/base/screen/multi_bloc_base_screen.dart';
 import '../../../core/base/bloc/base_bloc_state.dart';
 
@@ -46,7 +41,7 @@ class _WeatherPageState extends MultiProviderBlocScreenState<WeatherPage>
       duration: const Duration(milliseconds: 1000),
     );
 
-    _weatherBloc = WeatherBloc(getIt<IWeatherRepository>());
+    _weatherBloc = getIt<WeatherBloc>();
     _locationBloc = getIt<LocationBloc>();
   }
 

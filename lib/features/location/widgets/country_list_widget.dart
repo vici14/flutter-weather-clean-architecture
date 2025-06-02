@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/base/bloc/loading_state.dart';
 import '../../../core/dependency_injection/service_locator.dart';
 import '../../../core/theme/theme.dart';
 import '../../../data/models/country.dart';
@@ -203,14 +202,25 @@ class CountryListWidget extends StatelessWidget {
                     if (country.capital != null && country.capital!.isNotEmpty)
                       Text(
                         'Capital: ${country.capital}',
-                        style: AppTextStyles.bodyStyle,
+                        style: AppTextStyles.bodyStyle.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    if (country.region != null && country.region!.isNotEmpty)
+                      Text(
+                        'Region: ${country.region}',
+                        style: AppTextStyles.bodyStyle.copyWith(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
                       ),
                   ],
                 ),
               ),
               const Icon(
-                Icons.navigate_next,
-                color: AppColors.accent,
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: AppColors.textSecondary,
               ),
             ],
           ),

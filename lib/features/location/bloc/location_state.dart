@@ -8,7 +8,7 @@ class LocationState extends BaseBlocState {
   final LoadingState<Country> countryDetailsLoadingState;
 
   final List<Country> countries;
-  final List<Country> allCountries; // Store the original list of countries
+  final List<Country> allCountries;
   final Country? countryDetails;
 
   final Country? selectedCountry;
@@ -96,14 +96,19 @@ class LocationState extends BaseBlocState {
         query,
         errorMessage
       ];
-      
-        @override
-         bool get hasInitializeError => (!countryDetailsLoadingState.isLoading && countryDetailsLoadingState.loadError!= null) || 
-         (!countriesLoadingState.isLoading && countriesLoadingState.loadError!= null);
 
   @override
-  bool get isInitialLoading => countryDetailsLoadingState.isLoading || countriesLoadingState.isLoading;
-  
+  bool get hasInitializeError =>
+      (!countryDetailsLoadingState.isLoading &&
+          countryDetailsLoadingState.loadError != null) ||
+      (!countriesLoadingState.isLoading &&
+          countriesLoadingState.loadError != null);
+
   @override
-  List<LoadingState> get loadingStates => [countryDetailsLoadingState,countriesLoadingState];
+  bool get isInitialLoading =>
+      countryDetailsLoadingState.isLoading || countriesLoadingState.isLoading;
+
+  @override
+  List<LoadingState> get loadingStates =>
+      [countryDetailsLoadingState, countriesLoadingState];
 }

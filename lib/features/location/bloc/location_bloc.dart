@@ -2,22 +2,27 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:weather_app_assignment/core/dependency_injection/service_locator.dart';
 import 'package:weather_app_assignment/core/error/AppError.dart';
-import 'package:weather_app_assignment/core/error/error_handler.dart';
-import '../../../data/models/city.dart';
-import '../../../data/models/country.dart';
-import '../../../data/models/state.dart';
+import 'package:weather_app_assignment/data/models/country.dart';
+import 'package:weather_app_assignment/data/mappers/country_mapper.dart';
+import 'package:weather_app_assignment/domain/usecases/location/get_countries_usecase.dart';
+import 'package:weather_app_assignment/domain/usecases/location/get_country_details_usecase.dart';
 
 import '../../../core/base/bloc/base_bloc.dart';
 import '../../../core/base/bloc/loading_state.dart';
 import '../../../core/services/loading_manager.dart';
-import '../../../data/repositories/i_location_repository.dart';
 import 'location_event.dart';
 import 'location_state.dart';
 
 class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
-  final ILocationRepository _locationRepository;
+  final GetCountriesUseCase _getCountriesUseCase;
+  final GetCountryDetailsUseCase _getCountryDetailsUseCase;
 
-  LocationBloc(this._locationRepository) : super(state: const LocationState()) {
+  LocationBloc({
+    required GetCountriesUseCase getCountriesUseCase,
+    required GetCountryDetailsUseCase getCountryDetailsUseCase,
+  })  : _getCountriesUseCase = getCountriesUseCase,
+        _getCountryDetailsUseCase = getCountryDetailsUseCase,
+        super(state: const LocationState()) {
     on<GetCountriesEvent>(_onGetCountries);
     on<SearchLocationsEvent>(_onSearchLocations);
     on<CountrySelectedEvent>(_onCountrySelected);
@@ -35,33 +40,37 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
     ));
 
     try {
-      final result = await _locationRepository.getAllCountries();
+      final result = await _getCountriesUseCase();
 
       result.fold(
-          // Error case
-          (exception) {
-        emit(state.copyWith(
-          countriesLoadingState:
-              LoadingState.error(ErrorHandler.handleError(exception)),
-          timeStamp: DateTime.now().millisecondsSinceEpoch,
-        ));
-      },
-          // Success case
-          (countries) {
-        emit(state.copyWith(
-          countriesLoadingState: LoadingState<List<Country>>(
-            isLoading: false,
-            isLoadedSuccess: true,
-            value: countries,
-          ),
-          countries: countries,
-          allCountries: countries,
-          timeStamp: DateTime.now().millisecondsSinceEpoch,
-        ));
-      });
+        (failure) {
+          emit(state.copyWith(
+            countriesLoadingState: LoadingState.error(
+              AppError(message: failure.message),
+            ),
+            timeStamp: DateTime.now().millisecondsSinceEpoch,
+          ));
+        },
+        (countryEntities) {
+          final countries = CountryMapper.toModelList(countryEntities);
+
+          emit(state.copyWith(
+            countriesLoadingState: LoadingState<List<Country>>(
+              isLoading: false,
+              isLoadedSuccess: true,
+              value: countries,
+            ),
+            countries: countries,
+            allCountries: countries,
+            timeStamp: DateTime.now().millisecondsSinceEpoch,
+          ));
+        },
+      );
     } catch (e) {
       emit(state.copyWith(
-        countriesLoadingState: LoadingState.error(ErrorHandler.handleError(e)),
+        countriesLoadingState: LoadingState.error(
+          AppError(message: e.toString()),
+        ),
         timeStamp: DateTime.now().millisecondsSinceEpoch,
       ));
     }
@@ -71,7 +80,6 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
     SearchLocationsEvent event,
     Emitter<LocationState> emit,
   ) async {
-    // Update loading state for search operation
     emit(state.copyWith(
       searchLoadingState: LoadingState.loading(),
       query: event.query,
@@ -79,15 +87,12 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
     ));
 
     try {
-      // If we have countries loaded, we can filter them locally
       if (state.allCountries.isNotEmpty) {
         List<Country> filteredCountries = [];
 
-        // If query is empty, show all countries
         if (event.query.isEmpty) {
           filteredCountries = List.from(state.allCountries);
         } else {
-          // Filter countries by name, capital, and region based on the query
           filteredCountries = state.allCountries
               .where((country) =>
                   country.name
@@ -104,7 +109,6 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
               .toList();
         }
 
-        // Update state with search results and success state
         emit(state.copyWith(
           countries: filteredCountries,
           searchLoadingState: LoadingState<List<Country>>(
@@ -115,7 +119,6 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
           timeStamp: DateTime.now().millisecondsSinceEpoch,
         ));
       } else {
-        // If no countries loaded yet, set search state to error
         emit(state.copyWith(
           searchLoadingState: LoadingState.error(
             AppError(message: 'No countries available to search from.'),
@@ -124,10 +127,9 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
         ));
       }
     } catch (e) {
-      // Handle errors
       emit(state.copyWith(
         searchLoadingState: LoadingState.error(
-          ErrorHandler.handleError(e),
+          AppError(message: e.toString()),
         ),
         timeStamp: DateTime.now().millisecondsSinceEpoch,
       ));
@@ -155,7 +157,6 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
       timeStamp: DateTime.now().millisecondsSinceEpoch,
     ));
 
-    // Reset related lists if needed
     if (event.clearCountry) {
       emit(state.copyWith(
         timeStamp: DateTime.now().millisecondsSinceEpoch,
@@ -173,35 +174,38 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
     ));
 
     try {
-      final result = await _locationRepository.getCountryDetails(event.iso2);
+      final result = await _getCountryDetailsUseCase(
+        GetCountryDetailsParams(iso2: event.iso2),
+      );
 
       result.fold(
-          // Error case
-          (exception) {
-        emit(state.copyWith(
-          countryDetailsLoadingState: LoadingState.error(
-            ErrorHandler.handleError(exception),
-          ),
-          timeStamp: DateTime.now().millisecondsSinceEpoch,
-        ));
-        getIt<LoadingManager>().hideLoading();
-      },
-          // Success case
-          (country) {
-        emit(state.copyWith(
-          countryDetailsLoadingState: LoadingState<Country>(
-            isLoading: false,
-            isLoadedSuccess: true,
-            value: country,
-          ),
-          countryDetails: country,
-          timeStamp: DateTime.now().millisecondsSinceEpoch,
-        ));
-      });
+        (failure) {
+          emit(state.copyWith(
+            countryDetailsLoadingState: LoadingState.error(
+              AppError(message: failure.message),
+            ),
+            timeStamp: DateTime.now().millisecondsSinceEpoch,
+          ));
+          getIt<LoadingManager>().hideLoading();
+        },
+        (countryEntity) {
+          final country = CountryMapper.toModel(countryEntity);
+
+          emit(state.copyWith(
+            countryDetailsLoadingState: LoadingState<Country>(
+              isLoading: false,
+              isLoadedSuccess: true,
+              value: country,
+            ),
+            countryDetails: country,
+            timeStamp: DateTime.now().millisecondsSinceEpoch,
+          ));
+        },
+      );
     } catch (e) {
       emit(state.copyWith(
         countryDetailsLoadingState: LoadingState.error(
-          ErrorHandler.handleError(e),
+          AppError(message: e.toString()),
         ),
         timeStamp: DateTime.now().millisecondsSinceEpoch,
       ));
@@ -212,7 +216,6 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
     add(GetCountriesEvent());
   }
 
-  // Convenience methods for UI
   void onCountrySelected(Country country) {
     add(CountrySelectedEvent(country));
   }
@@ -232,7 +235,8 @@ class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
       clearCountry: clearCountry,
     ));
   }
-  resetLoadCountryDetails(){
+
+  resetLoadCountryDetails() {
     emit(state.copyWith(
       countryDetailsLoadingState: LoadingState.initial(),
       timeStamp: DateTime.now().millisecondsSinceEpoch,

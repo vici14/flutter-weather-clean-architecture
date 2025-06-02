@@ -1,7 +1,4 @@
-import '../../../data/models/city.dart';
 import '../../../data/models/country.dart';
-import '../../../data/models/state.dart';
-
 import '../../../core/base/bloc/base_event.dart';
 
 abstract class LocationEvent extends BaseEvent {}

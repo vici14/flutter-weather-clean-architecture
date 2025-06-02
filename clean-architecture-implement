@@ -1,0 +1,415 @@
+
+Hi Boss Cường! Based on your current architecture and the service_locator.dart file, here's a comprehensive plan to implement domain layers with use cases that integrate seamlessly with your existing dependency injection.
+
+## 📋 Implementation Plan for Domain Layer
+
+### Phase 1: Create Domain Layer Structure
+
+```
+lib/domain/
+├── entities/
+│   ├── weather_entity.dart
+│   ├── location_entity.dart
+│   └── country_entity.dart
+├── repositories/
+│   ├── i_weather_repository.dart
+│   ├── i_location_repository.dart
+│   └── base_repository.dart
+├── usecases/
+│   ├── weather/
+│   │   ├── get_current_weather_usecase.dart
+│   │   ├── get_weather_forecast_usecase.dart
+│   │   └── get_weather_by_coordinates_usecase.dart
+│   ├── location/
+│   │   ├── get_countries_usecase.dart
+│   │   ├── search_locations_usecase.dart
+│   │   └── get_current_location_usecase.dart
+│   └── base_usecase.dart
+└── failures/
+    ├── failure.dart
+    ├── network_failure.dart
+    ├── api_failure.dart
+    └── cache_failure.dart
+```
+
+### Phase 2: Domain Layer Implementation
+
+#### 1. Base Classes and Failures
+
+```dart
+// lib/domain/failures/failure.dart
+abstract class Failure {
+  final String message;
+  final String? code;
+  
+  const Failure({required this.message, this.code});
+}
+
+// lib/domain/usecases/base_usecase.dart
+import 'package:dartz/dartz.dart';
+import '../failures/failure.dart';
+
+abstract class UseCase<Type, Params> {
+  Future<Either<Failure, Type>> call(Params params);
+}
+
+abstract class UseCaseNoParams<Type> {
+  Future<Either<Failure, Type>> call();
+}
+```
+
+#### 2. Domain Entities
+
+```dart
+// lib/domain/entities/weather_entity.dart
+class WeatherEntity {
+  final double temperature;
+  final double feelsLike;
+  final String condition;
+  final String description;
+  final int humidity;
+  final double windSpeed;
+  final double pressure;
+  final String icon;
+  
+  const WeatherEntity({
+    required this.temperature,
+    required this.feelsLike,
+    required this.condition,
+    required this.description,
+    required this.humidity,
+    required this.windSpeed,
+    required this.pressure,
+    required this.icon,
+  });
+}
+
+// lib/domain/entities/location_entity.dart
+class LocationEntity {
+  final String name;
+  final String country;
+  final String state;
+  final double latitude;
+  final double longitude;
+  
+  const LocationEntity({
+    required this.name,
+    required this.country,
+    required this.state,
+    required this.latitude,
+    required this.longitude,
+  });
+}
+```
+
+#### 3. Repository Interfaces (Move to Domain)
+
+```dart
+// lib/domain/repositories/i_weather_repository.dart
+import 'package:dartz/dartz.dart';
+import '../entities/weather_entity.dart';
+import '../failures/failure.dart';
+
+abstract class IWeatherRepository {
+  Future<Either<Failure, WeatherEntity>> getCurrentWeather(String location);
+  Future<Either<Failure, List<WeatherEntity>>> getWeatherForecast(String location);
+  Future<Either<Failure, WeatherEntity>> getWeatherByCoordinates(double lat, double lon);
+}
+```
+
+#### 4. Use Cases Implementation
+
+```dart
+// lib/domain/usecases/weather/get_current_weather_usecase.dart
+import 'package:dartz/dartz.dart';
+import '../../entities/weather_entity.dart';
+import '../../failures/failure.dart';
+import '../../repositories/i_weather_repository.dart';
+import '../base_usecase.dart';
+
+class GetCurrentWeatherParams {
+  final String location;
+  
+  const GetCurrentWeatherParams({required this.location});
+}
+
+class GetCurrentWeatherUseCase implements UseCase<WeatherEntity, GetCurrentWeatherParams> {
+  final IWeatherRepository repository;
+  
+  const GetCurrentWeatherUseCase(this.repository);
+  
+  @override
+  Future<Either<Failure, WeatherEntity>> call(GetCurrentWeatherParams params) async {
+    return await repository.getCurrentWeather(params.location);
+  }
+}
+
+// lib/domain/usecases/location/get_countries_usecase.dart
+import 'package:dartz/dartz.dart';
+import '../../entities/location_entity.dart';
+import '../../failures/failure.dart';
+import '../../repositories/i_location_repository.dart';
+import '../base_usecase.dart';
+
+class GetCountriesUseCase implements UseCaseNoParams<List<LocationEntity>> {
+  final ILocationRepository repository;
+  
+  const GetCountriesUseCase(this.repository);
+  
+  @override
+  Future<Either<Failure, List<LocationEntity>>> call() async {
+    return await repository.getAllCountries();
+  }
+}
+```
+
+### Phase 3: Update Data Layer
+
+#### 1. Move Repository Implementations
+
+```dart
+// Move lib/data/repositories/i_weather_repository.dart to lib/domain/repositories/
+// Update lib/data/repositories/weather_repository.dart to implement domain interface
+
+// lib/data/repositories/weather_repository.dart
+import 'package:dartz/dartz.dart';
+import '../../domain/entities/weather_entity.dart';
+import '../../domain/failures/failure.dart';
+import '../../domain/repositories/i_weather_repository.dart';
+import '../models/weather_model.dart';
+import '../mappers/weather_mapper.dart';
+
+class WeatherRepository implements IWeatherRepository {
+  final ServiceManager serviceManager;
+  
+  WeatherRepository(this.serviceManager);
+  
+  @override
+  Future<Either<Failure, WeatherEntity>> getCurrentWeather(String location) async {
+    try {
+      final result = await serviceManager.getWeather(location);
+      if (result.isSuccess && result.data != null) {
+        final weatherEntity = WeatherMapper.toEntity(result.data!);
+        return Right(weatherEntity);
+      } else {
+        return Left(ApiFailure(message: result.error ?? 'Unknown error'));
+      }
+    } catch (e) {
+      return Left(NetworkFailure(message: e.toString()));
+    }
+  }
+}
+```
+
+#### 2. Create Mappers
+
+```dart
+// lib/data/mappers/weather_mapper.dart
+import '../../domain/entities/weather_entity.dart';
+import '../models/weather_model.dart';
+
+class WeatherMapper {
+  static WeatherEntity toEntity(WeatherModel model) {
+    return WeatherEntity(
+      temperature: model.temperature,
+      feelsLike: model.feelsLike,
+      condition: model.condition,
+      description: model.description,
+      humidity: model.humidity,
+      windSpeed: model.windSpeed,
+      pressure: model.pressure,
+      icon: model.icon,
+    );
+  }
+  
+  static WeatherModel toModel(WeatherEntity entity) {
+    return WeatherModel(
+      temperature: entity.temperature,
+      feelsLike: entity.feelsLike,
+      condition: entity.condition,
+      description: entity.description,
+      humidity: entity.humidity,
+      windSpeed: entity.windSpeed,
+      pressure: entity.pressure,
+      icon: entity.icon,
+    );
+  }
+}
+```
+
+### Phase 4: Update Service Locator
+
+```dart
+// lib/core/dependency_injection/service_locator.dart
+// Add these imports
+import 'package:weather_app_assignment/domain/repositories/i_weather_repository.dart';
+import 'package:weather_app_assignment/domain/repositories/i_location_repository.dart';
+import 'package:weather_app_assignment/domain/usecases/weather/get_current_weather_usecase.dart';
+import 'package:weather_app_assignment/domain/usecases/weather/get_weather_forecast_usecase.dart';
+import 'package:weather_app_assignment/domain/usecases/location/get_countries_usecase.dart';
+import 'package:weather_app_assignment/domain/usecases/location/search_locations_usecase.dart';
+
+// Update the setupServiceLocator function:
+Future<bool> setupServiceLocator() async {
+  // ... existing code ...
+
+  // Repositories (move these after ServiceManager registration)
+  if (!getIt.isRegistered<IWeatherRepository>()) {
+    getIt.registerLazySingleton<IWeatherRepository>(
+      () => WeatherRepository(getIt<ServiceManager>()),
+    );
+  }
+
+  if (!getIt.isRegistered<ILocationRepository>()) {
+    getIt.registerLazySingleton<ILocationRepository>(
+      () => LocationRepository(getIt<ServiceManager>()),
+    );
+  }
+
+  // Register Use Cases
+  if (!getIt.isRegistered<GetCurrentWeatherUseCase>()) {
+    getIt.registerLazySingleton<GetCurrentWeatherUseCase>(
+      () => GetCurrentWeatherUseCase(getIt<IWeatherRepository>()),
+    );
+  }
+
+  if (!getIt.isRegistered<GetWeatherForecastUseCase>()) {
+    getIt.registerLazySingleton<GetWeatherForecastUseCase>(
+      () => GetWeatherForecastUseCase(getIt<IWeatherRepository>()),
+    );
+  }
+
+  if (!getIt.isRegistered<GetCountriesUseCase>()) {
+    getIt.registerLazySingleton<GetCountriesUseCase>(
+      () => GetCountriesUseCase(getIt<ILocationRepository>()),
+    );
+  }
+
+  if (!getIt.isRegistered<SearchLocationsUseCase>()) {
+    getIt.registerLazySingleton<SearchLocationsUseCase>(
+      () => SearchLocationsUseCase(getIt<ILocationRepository>()),
+    );
+  }
+
+  // Update Blocs to use Use Cases instead of repositories directly
+  if (!getIt.isRegistered<LocationBloc>()) {
+    getIt.registerLazySingleton<LocationBloc>(
+      () => LocationBloc(
+        getCountriesUseCase: getIt<GetCountriesUseCase>(),
+        searchLocationsUseCase: getIt<SearchLocationsUseCase>(),
+      ),
+    );
+  }
+
+  if (!getIt.isRegistered<WeatherBloc>()) {
+    getIt.registerLazySingleton<WeatherBloc>(
+      () => WeatherBloc(
+        getCurrentWeatherUseCase: getIt<GetCurrentWeatherUseCase>(),
+        getWeatherForecastUseCase: getIt<GetWeatherForecastUseCase>(),
+      ),
+    );
+  }
+
+  // ... rest of existing code ...
+}
+```
+
+### Phase 5: Update BLoCs to Use Cases
+
+```dart
+// lib/features/location/bloc/location_bloc.dart
+class LocationBloc extends BaseBloc<LocationEvent, LocationState> {
+  final GetCountriesUseCase getCountriesUseCase;
+  final SearchLocationsUseCase searchLocationsUseCase;
+
+  LocationBloc({
+    required this.getCountriesUseCase,
+    required this.searchLocationsUseCase,
+  }) : super(state: const LocationState()) {
+    on<LoadLocationsEvent>(_onLoadLocations);
+    on<SearchLocationsEvent>(_onSearchLocations);
+  }
+
+  Future<void> _onLoadLocations(
+    LoadLocationsEvent event,
+    Emitter<LocationState> emit,
+  ) async {
+    emit(state.copyWith(
+      locationsLoadingState: LoadingState.loading(),
+      timeStamp: DateTime.now().millisecondsSinceEpoch,
+    ));
+    
+    final result = await getCountriesUseCase();
+    
+    result.fold(
+      (failure) => emit(state.copyWith(
+        locationsLoadingState: LoadingState.error(
+          AppError(message: failure.message)
+        ),
+        timeStamp: DateTime.now().millisecondsSinceEpoch,
+      )),
+      (locations) => emit(state.copyWith(
+        locationsLoadingState: LoadingState<List<LocationEntity>>(
+          isLoading: false,
+          isLoadedSuccess: true,
+          value: locations,
+        ),
+        timeStamp: DateTime.now().millisecondsSinceEpoch,
+      )),
+    );
+  }
+
+  void getCountries() {
+    add(LoadLocationsEvent());
+  }
+}
+```
+
+### Phase 6: Add Required Dependencies
+
+Add to `pubspec.yaml`:
+```yaml
+dependencies:
+  dartz: ^0.10.1  # For Either type
+```
+
+## 🔄 Migration Steps
+
+1. **Step 1**: Create domain layer structure and base classes
+2. **Step 2**: Implement entities and failure classes
+3. **Step 3**: Move repository interfaces to domain layer
+4. **Step 4**: Create use cases for all business operations
+5. **Step 5**: Update data layer repositories to implement domain interfaces
+6. **Step 6**: Create mappers between models and entities
+7. **Step 7**: Update service locator to register use cases
+8. **Step 8**: Update BLoCs to use use cases instead of repositories
+9. **Step 9**: Update imports throughout the project
+10. **Step 10**: Test and verify everything works
+
+## 📊 Benefits of This Implementation
+
+✅ **Clean Architecture Compliance**: Clear separation between domain, data, and presentation layers
+✅ **Testability**: Use cases can be easily unit tested
+✅ **Dependency Inversion**: BLoCs depend on abstractions, not concrete implementations
+✅ **Single Responsibility**: Each use case handles one specific business operation
+✅ **Maintainability**: Changes to business logic are isolated in use cases
+✅ **Scalability**: Easy to add new use cases and features
+
+## Summary
+
+### ✅ **What Will Be Done:**
+- Create complete domain layer with entities, repositories, and use cases
+- Implement proper dependency injection for use cases
+- Update BLoCs to use use cases instead of repositories directly
+- Add proper error handling with Either type
+- Create mappers between data models and domain entities
+- Maintain existing functionality while improving architecture
+
+### 🔧 **What Will Be Improved:**
+- Better separation of concerns
+- More testable business logic
+- Cleaner dependency flow
+- Easier to mock for testing
+- More maintainable codebase
+
+This plan maintains your existing service locator pattern while adding proper clean architecture layers. The use cases will be registered in GetIt and injected into BLoCs, keeping your current dependency injection approach intact.

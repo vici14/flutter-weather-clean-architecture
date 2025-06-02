@@ -2,18 +2,21 @@ import 'package:get_it/get_it.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:weather_app_assignment/data/repositories/i_weather_repository.dart';
+import 'package:weather_app_assignment/domain/repositories/i_weather_repository.dart';
 import 'package:weather_app_assignment/data/repositories/weather_repository.dart';
-import 'package:weather_app_assignment/data/repositories/i_location_repository.dart';
+import 'package:weather_app_assignment/domain/repositories/i_location_repository.dart';
 import 'package:weather_app_assignment/data/repositories/location_repository.dart';
-import 'package:weather_app_assignment/features/weather/bloc/weather_bloc.dart';
+import 'package:weather_app_assignment/domain/usecases/weather/get_weather_forecast_usecase.dart';
+import 'package:weather_app_assignment/domain/usecases/weather/get_four_days_forecast_usecase.dart';
+import 'package:weather_app_assignment/domain/usecases/location/get_countries_usecase.dart';
+import 'package:weather_app_assignment/domain/usecases/location/get_country_details_usecase.dart';
 import 'package:weather_app_assignment/features/location/bloc/location_bloc.dart';
+import 'package:weather_app_assignment/features/weather/bloc/weather_bloc.dart';
 import 'package:weather_app_assignment/data/service_manager.dart';
 import 'package:weather_app_assignment/core/services/firebase_manager.dart';
 import 'package:weather_app_assignment/core/services/secure_storage.dart';
 import 'package:weather_app_assignment/core/services/loading_manager.dart';
 import 'package:weather_app_assignment/core/services/network_checker.dart';
-import 'package:weather_app_assignment/routes/app_routes.dart';
 
 final getIt = GetIt.instance;
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -114,10 +117,46 @@ Future<bool> setupServiceLocator() async {
       );
     }
 
+    // Use cases
+    if (!getIt.isRegistered<GetWeatherForecastUseCase>()) {
+      getIt.registerLazySingleton<GetWeatherForecastUseCase>(
+        () => GetWeatherForecastUseCase(getIt<IWeatherRepository>()),
+      );
+    }
+
+    if (!getIt.isRegistered<GetFourDaysForecastUseCase>()) {
+      getIt.registerLazySingleton<GetFourDaysForecastUseCase>(
+        () => GetFourDaysForecastUseCase(getIt<IWeatherRepository>()),
+      );
+    }
+
+    if (!getIt.isRegistered<GetCountriesUseCase>()) {
+      getIt.registerLazySingleton<GetCountriesUseCase>(
+        () => GetCountriesUseCase(getIt<ILocationRepository>()),
+      );
+    }
+
+    if (!getIt.isRegistered<GetCountryDetailsUseCase>()) {
+      getIt.registerLazySingleton<GetCountryDetailsUseCase>(
+        () => GetCountryDetailsUseCase(getIt<ILocationRepository>()),
+      );
+    }
+
     // Blocs
     if (!getIt.isRegistered<LocationBloc>()) {
       getIt.registerLazySingleton<LocationBloc>(
-        () => LocationBloc(getIt<ILocationRepository>()),
+        () => LocationBloc(
+          getCountriesUseCase: getIt<GetCountriesUseCase>(),
+          getCountryDetailsUseCase: getIt<GetCountryDetailsUseCase>(),
+        ),
+      );
+    }
+
+    if (!getIt.isRegistered<WeatherBloc>()) {
+      getIt.registerLazySingleton<WeatherBloc>(
+        () => WeatherBloc(
+          getFourDaysForecastUseCase: getIt<GetFourDaysForecastUseCase>(),
+        ),
       );
     }
 
