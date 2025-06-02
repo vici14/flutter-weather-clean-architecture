@@ -1,0 +1,1212 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Flutter Weather App - Clean Architecture Feature Implementation Guide
+
+## Project Overview
+This guide demonstrates how to implement a complete feature following Clean Architecture principles in the Flutter Weather app. The architecture consists of three main layers: Presentation, Domain, and Data, with clear separation of concerns and dependency inversion.
+
+## Architecture Layers Structure
+
+```
+lib/
+├── core/                           # Core application components
+│   ├── base/                       # Base classes and abstractions
+│   │   ├── bloc/                   # Base BLoC components
+│   │   ├── loading/                # Loading state management
+│   │   └── screen/                 # Base screen components
+│   ├── dependency_injection/       # Service locator setup
+│   ├── error/                      # Error handling
+│   ├── models/                     # Core models
+│   ├── services/                   # Core services
+│   ├── theme/                      # App theme configuration
+│   ├── utils/                      # Utility functions
+│   └── widgets/                    # Reusable widgets
+├── data/                           # Data layer
+│   ├── exception/                  # Data layer exceptions
+│   ├── interceptors/               # HTTP interceptors
+│   ├── mappers/                    # Data to domain mappers
+│   ├── models/                     # Data models (DTOs)
+│   ├── repositories/               # Repository implementations
+│   ├── services/                   # External services
+│   ├── api_client.dart             # HTTP client
+│   └── service_manager.dart        # Service orchestration
+├── domain/                         # Domain layer
+│   ├── entities/                   # Business entities
+│   ├── failures/                   # Domain failures
+│   ├── repositories/               # Repository contracts
+│   └── usecases/                   # Business use cases
+├── features/                       # Feature modules
+│   └── {feature_name}/             # Individual feature
+│       ├── bloc/                   # Feature state management
+│       ├── pages/                  # Feature screens
+│       ├── widgets/                # Feature-specific widgets
+│       └── index.dart              # Feature exports
+└── routes/                         # App routing
+```
+
+## Complete Feature Implementation Example: User Profile Feature
+
+### 1. Domain Layer Implementation
+
+#### 1.1 Domain Entity
+**File**: `lib/domain/entities/user_profile_entity.dart`
+
+```dart
+import 'package:equatable/equatable.dart';
+
+class UserProfileEntity extends Equatable {
+  final String id;
+  final String name;
+  final String email;
+  final String? avatarUrl;
+  final DateTime createdAt;
+  final bool isVerified;
+  final Map<String, dynamic>? preferences;
+
+  const UserProfileEntity({
+    required this.id,
+    required this.name,
+    required this.email,
+    this.avatarUrl,
+    required this.createdAt,
+    required this.isVerified,
+    this.preferences,
+  });
+
+  @override
+  List<Object?> get props => [
+        id,
+        name,
+        email,
+        avatarUrl,
+        createdAt,
+        isVerified,
+        preferences,
+      ];
+}
+```
+
+#### 1.2 Repository Contract
+**File**: `lib/domain/repositories/i_user_profile_repository.dart`
+
+```dart
+import 'package:dartz/dartz.dart';
+import '../entities/user_profile_entity.dart';
+import '../failures/failure.dart';
+
+abstract class IUserProfileRepository {
+  Future<Either<Failure, UserProfileEntity>> getUserProfile(String userId);
+  Future<Either<Failure, UserProfileEntity>> updateUserProfile(UserProfileEntity profile);
+  Future<Either<Failure, void>> deleteUserProfile(String userId);
+  Future<Either<Failure, List<UserProfileEntity>>> searchUsers(String query);
+}
+```
+
+#### 1.3 Use Cases
+**File**: `lib/domain/usecases/get_user_profile_usecase.dart`
+
+```dart
+import 'package:dartz/dartz.dart';
+import '../entities/user_profile_entity.dart';
+import '../failures/failure.dart';
+import '../repositories/i_user_profile_repository.dart';
+
+class GetUserProfileUseCase {
+  final IUserProfileRepository _repository;
+
+  GetUserProfileUseCase(this._repository);
+
+  Future<Either<Failure, UserProfileEntity>> call(String userId) async {
+    if (userId.isEmpty) {
+      return Left(ValidationFailure('User ID cannot be empty'));
+    }
+    return await _repository.getUserProfile(userId);
+  }
+}
+```
+
+**File**: `lib/domain/usecases/update_user_profile_usecase.dart`
+
+```dart
+import 'package:dartz/dartz.dart';
+import '../entities/user_profile_entity.dart';
+import '../failures/failure.dart';
+import '../repositories/i_user_profile_repository.dart';
+
+class UpdateUserProfileUseCase {
+  final IUserProfileRepository _repository;
+
+  UpdateUserProfileUseCase(this._repository);
+
+  Future<Either<Failure, UserProfileEntity>> call(UserProfileEntity profile) async {
+    if (profile.name.trim().isEmpty) {
+      return Left(ValidationFailure('Name cannot be empty'));
+    }
+    if (!_isValidEmail(profile.email)) {
+      return Left(ValidationFailure('Invalid email format'));
+    }
+    return await _repository.updateUserProfile(profile);
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+}
+```
+
+**File**: `lib/domain/usecases/search_users_usecase.dart`
+
+```dart
+import 'package:dartz/dartz.dart';
+import '../entities/user_profile_entity.dart';
+import '../failures/failure.dart';
+import '../repositories/i_user_profile_repository.dart';
+
+class SearchUsersUseCase {
+  final IUserProfileRepository _repository;
+
+  SearchUsersUseCase(this._repository);
+
+  Future<Either<Failure, List<UserProfileEntity>>> call(String query) async {
+    if (query.trim().length < 2) {
+      return Left(ValidationFailure('Search query must be at least 2 characters'));
+    }
+    return await _repository.searchUsers(query.trim());
+  }
+}
+```
+
+### 2. Data Layer Implementation
+
+#### 2.1 Data Model (DTO)
+**File**: `lib/data/models/user_profile_model.dart`
+
+```dart
+import '../../domain/entities/user_profile_entity.dart';
+
+class UserProfileModel {
+  final String id;
+  final String name;
+  final String email;
+  final String? avatarUrl;
+  final String createdAt;
+  final bool isVerified;
+  final Map<String, dynamic>? preferences;
+
+  UserProfileModel({
+    required this.id,
+    required this.name,
+    required this.email,
+    this.avatarUrl,
+    required this.createdAt,
+    required this.isVerified,
+    this.preferences,
+  });
+
+  factory UserProfileModel.fromJson(Map<String, dynamic> json) {
+    return UserProfileModel(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      avatarUrl: json['avatar_url'],
+      createdAt: json['created_at'] ?? '',
+      isVerified: json['is_verified'] ?? false,
+      preferences: json['preferences'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'avatar_url': avatarUrl,
+      'created_at': createdAt,
+      'is_verified': isVerified,
+      'preferences': preferences,
+    };
+  }
+}
+```
+
+#### 2.2 Data Mapper
+**File**: `lib/data/mappers/user_profile_mapper.dart`
+
+```dart
+import '../models/user_profile_model.dart';
+import '../../domain/entities/user_profile_entity.dart';
+
+class UserProfileMapper {
+  static UserProfileEntity modelToEntity(UserProfileModel model) {
+    return UserProfileEntity(
+      id: model.id,
+      name: model.name,
+      email: model.email,
+      avatarUrl: model.avatarUrl,
+      createdAt: DateTime.tryParse(model.createdAt) ?? DateTime.now(),
+      isVerified: model.isVerified,
+      preferences: model.preferences,
+    );
+  }
+
+  static UserProfileModel entityToModel(UserProfileEntity entity) {
+    return UserProfileModel(
+      id: entity.id,
+      name: entity.name,
+      email: entity.email,
+      avatarUrl: entity.avatarUrl,
+      createdAt: entity.createdAt.toIso8601String(),
+      isVerified: entity.isVerified,
+      preferences: entity.preferences,
+    );
+  }
+
+  static List<UserProfileEntity> modelListToEntityList(List<UserProfileModel> models) {
+    return models.map((model) => modelToEntity(model)).toList();
+  }
+}
+```
+
+#### 2.3 Data Service
+**File**: `lib/data/services/user_profile_service.dart`
+
+```dart
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../models/user_profile_model.dart';
+import '../exception/app_exception.dart';
+
+class UserProfileService {
+  final http.Client _client;
+  final String _baseUrl;
+
+  UserProfileService(this._client, this._baseUrl);
+
+  Future<UserProfileModel> getUserProfile(String userId) async {
+    try {
+      final response = await _client.get(
+        Uri.parse('$_baseUrl/users/$userId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return UserProfileModel.fromJson(data);
+      } else if (response.statusCode == 404) {
+        throw NotFoundException('User not found');
+      } else {
+        throw ServerException('Failed to get user profile: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e is AppException) rethrow;
+      throw NetworkException('Network error: ${e.toString()}');
+    }
+  }
+  Future<UserProfileModel> updateUserProfile(UserProfileModel profile) async {
+    try {
+      final response = await _client.put(
+        Uri.parse('$_baseUrl/users/${profile.id}'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(profile.toJson()),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return UserProfileModel.fromJson(data);
+      } else {
+        throw ServerException('Failed to update profile: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e is AppException) rethrow;
+      throw NetworkException('Network error: ${e.toString()}');
+    }
+  }
+
+  Future<void> deleteUserProfile(String userId) async {
+    try {
+      final response = await _client.delete(
+        Uri.parse('$_baseUrl/users/$userId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode != 204) {
+        throw ServerException('Failed to delete profile: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e is AppException) rethrow;
+      throw NetworkException('Network error: ${e.toString()}');
+    }
+  }
+
+  Future<List<UserProfileModel>> searchUsers(String query) async {
+    try {
+      final response = await _client.get(
+        Uri.parse('$_baseUrl/users/search?q=${Uri.encodeComponent(query)}'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        final List<dynamic> usersJson = data['users'] ?? [];
+        return usersJson.map((json) => UserProfileModel.fromJson(json)).toList();
+      } else {
+        throw ServerException('Failed to search users: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e is AppException) rethrow;
+      throw NetworkException('Network error: ${e.toString()}');
+    }
+  }
+}
+```
+
+#### 2.4 Repository Implementation
+**File**: `lib/data/repositories/user_profile_repository.dart`
+
+```dart
+import 'package:dartz/dartz.dart';
+import '../../domain/entities/user_profile_entity.dart';
+import '../../domain/failures/failure.dart';
+import '../../domain/repositories/i_user_profile_repository.dart';
+import '../mappers/user_profile_mapper.dart';
+import '../services/user_profile_service.dart';
+import '../exception/app_exception.dart';
+
+class UserProfileRepository implements IUserProfileRepository {
+  final UserProfileService _service;
+
+  UserProfileRepository(this._service);
+
+  @override
+  Future<Either<Failure, UserProfileEntity>> getUserProfile(String userId) async {
+    try {
+      final model = await _service.getUserProfile(userId);
+      final entity = UserProfileMapper.modelToEntity(model);
+      return Right(entity);
+    } on NotFoundException {
+      return Left(NotFoundFailure('User not found'));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure('An unexpected error occurred: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserProfileEntity>> updateUserProfile(UserProfileEntity profile) async {
+    try {
+      final model = UserProfileMapper.entityToModel(profile);
+      final updatedModel = await _service.updateUserProfile(model);
+      final updatedEntity = UserProfileMapper.modelToEntity(updatedModel);
+      return Right(updatedEntity);
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure('An unexpected error occurred: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteUserProfile(String userId) async {
+    try {
+      await _service.deleteUserProfile(userId);
+      return const Right(null);
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure('An unexpected error occurred: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<UserProfileEntity>>> searchUsers(String query) async {
+    try {
+      final models = await _service.searchUsers(query);
+      final entities = UserProfileMapper.modelListToEntityList(models);
+      return Right(entities);
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure('An unexpected error occurred: ${e.toString()}'));
+    }
+  }
+}
+```
+
+### 3. Presentation Layer Implementation
+
+#### 3.1 BLoC Events
+**File**: `lib/features/user_profile/bloc/user_profile_event.dart`
+
+```dart
+import '../../../core/base/bloc/base_event.dart';
+import '../../../domain/entities/user_profile_entity.dart';
+
+abstract class UserProfileEvent extends BaseEvent {}
+
+class LoadUserProfileEvent extends UserProfileEvent {
+  final String userId;
+
+  LoadUserProfileEvent(this.userId);
+}
+
+class UpdateUserProfileEvent extends UserProfileEvent {
+  final UserProfileEntity profile;
+
+  UpdateUserProfileEvent(this.profile);
+}
+
+class DeleteUserProfileEvent extends UserProfileEvent {
+  final String userId;
+
+  DeleteUserProfileEvent(this.userId);
+}
+
+class SearchUsersEvent extends UserProfileEvent {
+  final String query;
+
+  SearchUsersEvent(this.query);
+}
+
+class ClearSearchEvent extends UserProfileEvent {}
+
+class ResetFormEvent extends UserProfileEvent {}
+```
+
+#### 3.2 BLoC State
+**File**: `lib/features/user_profile/bloc/user_profile_state.dart`
+
+```dart
+import '../../../core/base/bloc/base_bloc_state.dart';
+import '../../../core/base/loading/loading_state.dart';
+import '../../../domain/entities/user_profile_entity.dart';
+
+class UserProfileState extends BaseBlocState {
+  final LoadingState<UserProfileEntity> profileLoadingState;
+  final LoadingState<UserProfileEntity> updateLoadingState;
+  final LoadingState<void> deleteLoadingState;
+  final LoadingState<List<UserProfileEntity>> searchLoadingState;
+  final List<UserProfileEntity> searchResults;
+  final String searchQuery;
+  final UserProfileEntity? currentProfile;
+
+  const UserProfileState({
+    super.timeStamp = 1,
+    super.baseError = '',
+    this.profileLoadingState = const LoadingState(),
+    this.updateLoadingState = const LoadingState(),
+    this.deleteLoadingState = const LoadingState(),
+    this.searchLoadingState = const LoadingState(),
+    this.searchResults = const [],
+    this.searchQuery = '',
+    this.currentProfile,
+  });
+
+  UserProfileState copyWith({
+    int? timeStamp,
+    String? baseError,
+    LoadingState<UserProfileEntity>? profileLoadingState,
+    LoadingState<UserProfileEntity>? updateLoadingState,
+    LoadingState<void>? deleteLoadingState,
+    LoadingState<List<UserProfileEntity>>? searchLoadingState,
+    List<UserProfileEntity>? searchResults,
+    String? searchQuery,
+    UserProfileEntity? currentProfile,
+  }) {
+    return UserProfileState(
+      timeStamp: timeStamp ?? this.timeStamp,
+      baseError: baseError ?? this.baseError,
+      profileLoadingState: profileLoadingState ?? this.profileLoadingState,
+      updateLoadingState: updateLoadingState ?? this.updateLoadingState,
+      deleteLoadingState: deleteLoadingState ?? this.deleteLoadingState,
+      searchLoadingState: searchLoadingState ?? this.searchLoadingState,
+      searchResults: searchResults ?? this.searchResults,
+      searchQuery: searchQuery ?? this.searchQuery,
+      currentProfile: currentProfile ?? this.currentProfile,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        timeStamp,
+        profileLoadingState,
+        updateLoadingState,
+        deleteLoadingState,
+        searchLoadingState,
+        searchResults,
+        searchQuery,
+        currentProfile,
+      ];
+}
+```
+
+#### 3.3 BLoC Implementation
+**File**: `lib/features/user_profile/bloc/user_profile_bloc.dart`
+
+```dart
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/base/bloc/base_bloc.dart';
+import '../../../core/base/loading/loading_state.dart';
+import '../../../core/error/app_error.dart';
+import '../../../domain/usecases/get_user_profile_usecase.dart';
+import '../../../domain/usecases/update_user_profile_usecase.dart';
+import '../../../domain/usecases/search_users_usecase.dart';
+import 'user_profile_event.dart';
+import 'user_profile_state.dart';
+
+class UserProfileBloc extends BaseBloc<UserProfileEvent, UserProfileState> {
+  final GetUserProfileUseCase _getUserProfileUseCase;
+  final UpdateUserProfileUseCase _updateUserProfileUseCase;
+  final SearchUsersUseCase _searchUsersUseCase;
+
+  UserProfileBloc(
+    this._getUserProfileUseCase,
+    this._updateUserProfileUseCase,
+    this._searchUsersUseCase,
+  ) : super(state: const UserProfileState()) {
+    on<LoadUserProfileEvent>(_onLoadUserProfile);
+    on<UpdateUserProfileEvent>(_onUpdateUserProfile);
+    on<SearchUsersEvent>(_onSearchUsers);
+    on<ClearSearchEvent>(_onClearSearch);
+    on<ResetFormEvent>(_onResetForm);
+  }
+
+  Future<void> _onLoadUserProfile(
+    LoadUserProfileEvent event,
+    Emitter<UserProfileState> emit,
+  ) async {
+    emit(state.copyWith(
+      profileLoadingState: LoadingState.loading(),
+      timeStamp: DateTime.now().millisecondsSinceEpoch,
+    ));
+
+    final result = await _getUserProfileUseCase(event.userId);
+
+    result.fold(
+      (failure) => emit(state.copyWith(
+        profileLoadingState: LoadingState.error(
+          AppError(message: failure.message),
+        ),
+        timeStamp: DateTime.now().millisecondsSinceEpoch,
+      )),
+      (profile) => emit(state.copyWith(
+        profileLoadingState: LoadingState.success(profile),
+        currentProfile: profile,
+        timeStamp: DateTime.now().millisecondsSinceEpoch,
+      )),
+    );
+  }
+
+  Future<void> _onUpdateUserProfile(
+    UpdateUserProfileEvent event,
+    Emitter<UserProfileState> emit,
+  ) async {
+    emit(state.copyWith(
+      updateLoadingState: LoadingState.loading(),
+      timeStamp: DateTime.now().millisecondsSinceEpoch,
+    ));
+
+    final result = await _updateUserProfileUseCase(event.profile);
+
+    result.fold(
+      (failure) => emit(state.copyWith(
+        updateLoadingState: LoadingState.error(
+          AppError(message: failure.message),
+        ),
+        timeStamp: DateTime.now().millisecondsSinceEpoch,
+      )),
+      (updatedProfile) => emit(state.copyWith(
+        updateLoadingState: LoadingState.success(updatedProfile),
+        currentProfile: updatedProfile,
+        timeStamp: DateTime.now().millisecondsSinceEpoch,
+      )),
+    );
+  }
+
+  Future<void> _onSearchUsers(
+    SearchUsersEvent event,
+    Emitter<UserProfileState> emit,
+  ) async {
+    emit(state.copyWith(
+      searchLoadingState: LoadingState.loading(),
+      searchQuery: event.query,
+      timeStamp: DateTime.now().millisecondsSinceEpoch,
+    ));
+
+    final result = await _searchUsersUseCase(event.query);
+
+    result.fold(
+      (failure) => emit(state.copyWith(
+        searchLoadingState: LoadingState.error(
+          AppError(message: failure.message),
+        ),
+        timeStamp: DateTime.now().millisecondsSinceEpoch,
+      )),
+      (users) => emit(state.copyWith(
+        searchLoadingState: LoadingState.success(users),
+        searchResults: users,
+        timeStamp: DateTime.now().millisecondsSinceEpoch,
+      )),
+    );
+  }
+
+  void _onClearSearch(
+    ClearSearchEvent event,
+    Emitter<UserProfileState> emit,
+  ) {
+    emit(state.copyWith(
+      searchResults: [],
+      searchQuery: '',
+      searchLoadingState: const LoadingState(),
+      timeStamp: DateTime.now().millisecondsSinceEpoch,
+    ));
+  }
+
+  void _onResetForm(
+    ResetFormEvent event,
+    Emitter<UserProfileState> emit,
+  ) {
+    emit(const UserProfileState());
+  }
+
+  void loadUserProfile(String userId) {
+    add(LoadUserProfileEvent(userId));
+  }
+
+  void updateUserProfile(UserProfileEntity profile) {
+    add(UpdateUserProfileEvent(profile));
+  }
+
+  void searchUsers(String query) {
+    add(SearchUsersEvent(query));
+  }
+
+  void clearSearch() {
+    add(ClearSearchEvent());
+  }
+
+  void resetForm() {
+    add(ResetFormEvent());
+  }
+}
+```
+
+#### 3.4 Feature Page
+**File**: `lib/features/user_profile/pages/user_profile_page.dart`
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_loading_indicator.dart';
+import '../../../core/widgets/app_error_widget.dart';
+import '../bloc/user_profile_bloc.dart';
+import '../bloc/user_profile_state.dart';
+import '../widgets/user_profile_form_widget.dart';
+import '../widgets/user_search_widget.dart';
+
+class UserProfilePage extends StatefulWidget {
+  final String? userId;
+
+  const UserProfilePage({
+    super.key,
+    this.userId,
+  });
+
+  @override
+  State<UserProfilePage> createState() => _UserProfilePageState();
+}
+
+class _UserProfilePageState extends State<UserProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.userId != null) {
+      context.read<UserProfileBloc>().loadUserProfile(widget.userId!);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'User Profile',
+          style: AppTextStyles.headerStyle,
+        ),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+      ),
+      body: BlocBuilder<UserProfileBloc, UserProfileState>(
+        builder: (context, state) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (state.profileLoadingState.isLoading)
+                  const Center(child: AppLoadingIndicator()),
+                if (state.profileLoadingState.hasError)
+                  AppErrorWidget(
+                    error: state.profileLoadingState.loadError!,
+                    onRetry: () {
+                      if (widget.userId != null) {
+                        context.read<UserProfileBloc>().loadUserProfile(widget.userId!);
+                      }
+                    },
+                  ),
+                if (state.profileLoadingState.isLoadedSuccess)
+                  UserProfileFormWidget(
+                    profile: state.currentProfile!,
+                    isLoading: state.updateLoadingState.isLoading,
+                    onUpdate: (profile) {
+                      context.read<UserProfileBloc>().updateUserProfile(profile);
+                    },
+                  ),
+                const SizedBox(height: 24),
+                Text(
+                  'Search Users',
+                  style: AppTextStyles.headerStyle,
+                ),
+                const SizedBox(height: 16),
+                UserSearchWidget(
+                  searchResults: state.searchResults,
+                  isLoading: state.searchLoadingState.isLoading,
+                  hasError: state.searchLoadingState.hasError,
+                  error: state.searchLoadingState.loadError,
+                  onSearch: (query) {
+                    context.read<UserProfileBloc>().searchUsers(query);
+                  },
+                  onClear: () {
+                    context.read<UserProfileBloc>().clearSearch();
+                  },
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+```
+
+#### 3.5 Feature Widgets
+**File**: `lib/features/user_profile/widgets/user_profile_form_widget.dart`
+
+```dart
+import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/app_button.dart';
+import '../../../domain/entities/user_profile_entity.dart';
+
+class UserProfileFormWidget extends StatefulWidget {
+  final UserProfileEntity profile;
+  final bool isLoading;
+  final Function(UserProfileEntity) onUpdate;
+
+  const UserProfileFormWidget({
+    super.key,
+    required this.profile,
+    required this.isLoading,
+    required this.onUpdate,
+  });
+
+  @override
+  State<UserProfileFormWidget> createState() => _UserProfileFormWidgetState();
+}
+
+class _UserProfileFormWidgetState extends State<UserProfileFormWidget> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.profile.name);
+    _emailController = TextEditingController(text: widget.profile.email);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      color: AppColors.surface,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Profile Information',
+                style: AppTextStyles.headerStyle,
+              ),
+              const SizedBox(height: 16),
+              if (widget.profile.avatarUrl != null)
+                Center(
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundImage: NetworkImage(widget.profile.avatarUrl!),
+                  ),
+                ),
+              const SizedBox(height: 16),
+              AppTextField(
+                controller: _nameController,
+                label: 'Name',
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Name is required';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              AppTextField(
+                controller: _emailController,
+                label: 'Email',
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Email is required';
+                  }
+                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    return 'Invalid email format';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              AppButton(
+                text: 'Update Profile',
+                onPressed: widget.isLoading ? null : _handleUpdate,
+                isLoading: widget.isLoading,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleUpdate() {
+    if (_formKey.currentState?.validate() ?? false) {
+      final updatedProfile = UserProfileEntity(
+        id: widget.profile.id,
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        avatarUrl: widget.profile.avatarUrl,
+        createdAt: widget.profile.createdAt,
+        isVerified: widget.profile.isVerified,
+        preferences: widget.profile.preferences,
+      );
+      widget.onUpdate(updatedProfile);
+    }
+  }
+}
+```
+
+**File**: `lib/features/user_profile/widgets/user_search_widget.dart`
+
+```dart
+import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/app_loading_indicator.dart';
+import '../../../core/widgets/app_error_widget.dart';
+import '../../../core/error/app_error.dart';
+import '../../../domain/entities/user_profile_entity.dart';
+
+class UserSearchWidget extends StatefulWidget {
+  final List<UserProfileEntity> searchResults;
+  final bool isLoading;
+  final bool hasError;
+  final AppError? error;
+  final Function(String) onSearch;
+  final VoidCallback onClear;
+
+  const UserSearchWidget({
+    super.key,
+    required this.searchResults,
+    required this.isLoading,
+    required this.hasError,
+    this.error,
+    required this.onSearch,
+    required this.onClear,
+  });
+
+  @override
+  State<UserSearchWidget> createState() => _UserSearchWidgetState();
+}
+
+class _UserSearchWidgetState extends State<UserSearchWidget> {
+  late final TextEditingController _searchController;
+  final _debounceTimer = ValueNotifier<Timer?>(null);
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounceTimer.value?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AppTextField(
+          controller: _searchController,
+          label: 'Search users...',
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _searchController.clear();
+                    widget.onClear();
+                  },
+                )
+              : const Icon(Icons.search),
+          onChanged: _handleSearchChange,
+        ),
+        const SizedBox(height: 16),
+        if (widget.isLoading)
+          const AppLoadingIndicator()
+        else if (widget.hasError && widget.error != null)
+          AppErrorWidget(
+            error: widget.error!,
+            onRetry: () => widget.onSearch(_searchController.text),
+          )
+        else if (widget.searchResults.isNotEmpty)
+          _buildSearchResults()
+        else if (_searchController.text.isNotEmpty)
+          Center(
+            child: Text(
+              'No users found',
+              style: AppTextStyles.bodyStyle,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSearchResults() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: widget.searchResults.length,
+      itemBuilder: (context, index) {
+        final user = widget.searchResults[index];
+        return Card(
+          color: AppColors.surface,
+          child: ListTile(
+            leading: user.avatarUrl != null
+                ? CircleAvatar(
+                    backgroundImage: NetworkImage(user.avatarUrl!),
+                  )
+                : CircleAvatar(
+                    backgroundColor: AppColors.primary,
+                    child: Text(
+                      user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                      style: AppTextStyles.bodyStyle.copyWith(
+                        color: AppColors.onPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+            title: Text(
+              user.name,
+              style: AppTextStyles.bodyStyle.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            subtitle: Text(
+              user.email,
+              style: AppTextStyles.bodyStyle.copyWith(
+                color: AppColors.onSurface.withOpacity(0.7),
+              ),
+            ),
+            trailing: user.isVerified
+                ? Icon(
+                    Icons.verified,
+                    color: AppColors.primary,
+                  )
+                : null,
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleSearchChange(String value) {
+    _debounceTimer.value?.cancel();
+    _debounceTimer.value = Timer(const Duration(milliseconds: 500), () {
+      if (value.trim().length >= 2) {
+        widget.onSearch(value.trim());
+      } else if (value.trim().isEmpty) {
+        widget.onClear();
+      }
+    });
+  }
+}
+```
+
+#### 3.6 Feature Index
+**File**: `lib/features/user_profile/index.dart`
+
+```dart
+export 'bloc/user_profile_bloc.dart';
+export 'bloc/user_profile_event.dart';
+export 'bloc/user_profile_state.dart';
+export 'pages/user_profile_page.dart';
+export 'widgets/user_profile_form_widget.dart';
+export 'widgets/user_search_widget.dart';
+```
+
+### 4. Dependency Injection Setup
+
+#### 4.1 Service Locator Registration
+**File**: Add to `lib/core/dependency_injection/service_locator.dart`
+
+```dart
+void _registerUserProfileFeature() {
+  // Services
+  getIt.registerLazySingleton<UserProfileService>(
+    () => UserProfileService(
+      getIt<http.Client>(),
+      getIt<AppConfig>().apiBaseUrl,
+    ),
+  );
+
+  // Repositories
+  getIt.registerLazySingleton<IUserProfileRepository>(
+    () => UserProfileRepository(getIt<UserProfileService>()),
+  );
+
+  // Use Cases
+  getIt.registerLazySingleton<GetUserProfileUseCase>(
+    () => GetUserProfileUseCase(getIt<IUserProfileRepository>()),
+  );
+
+  getIt.registerLazySingleton<UpdateUserProfileUseCase>(
+    () => UpdateUserProfileUseCase(getIt<IUserProfileRepository>()),
+  );
+
+  getIt.registerLazySingleton<SearchUsersUseCase>(
+    () => SearchUsersUseCase(getIt<IUserProfileRepository>()),
+  );
+
+  // BLoC
+  getIt.registerFactory<UserProfileBloc>(
+    () => UserProfileBloc(
+      getIt<GetUserProfileUseCase>(),
+      getIt<UpdateUserProfileUseCase>(),
+      getIt<SearchUsersUseCase>(),
+    ),
+  );
+}
+```
+
+#### 4.2 Route Configuration
+**File**: Add to routing configuration
+
+```dart
+class AppRoutes {
+  static const String userProfile = '/user-profile';
+  
+  static Route<dynamic> generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case userProfile:
+        final userId = settings.arguments as String?;
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => getIt<UserProfileBloc>(),
+            child: UserProfilePage(userId: userId),
+          ),
+        );
+      default:
+        return MaterialPageRoute(
+          builder: (_) => const NotFoundPage(),
+        );
+    }
+  }
+}
+```
+
+## Implementation Guidelines Summary
+
+### 1. Layer Responsibilities
+
+**Domain Layer:**
+- Contains business logic and rules
+- Defines contracts (interfaces)
+- Independent of external frameworks
+- Contains entities, use cases, and repository contracts
+
+**Data Layer:**
+- Implements repository contracts
+- Handles external data sources
+- Contains models, mappers, and services
+- Manages data transformation and error handling
+
+**Presentation Layer:**
+- Handles UI logic and user interactions
+- Uses BLoC for state management
+- Contains pages, widgets, and BLoC components
+- Depends on domain layer only
+
+### 2. Key Principles
+
+1. **Dependency Inversion**: Higher layers depend on abstractions
+2. **Single Responsibility**: Each class has one reason to change
+3. **Open/Closed**: Open for extension, closed for modification
+4. **Interface Segregation**: Clients depend only on interfaces they use
+5. **Separation of Concerns**: Each layer has distinct responsibilities
+
+### 3. Best Practices
+
+1. **Error Handling**: Consistent error handling across all layers
+2. **Loading States**: Use LoadingState wrapper for async operations
+3. **Data Mapping**: Always map between data models and domain entities
+4. **Validation**: Validate data at appropriate layer boundaries
+5. **Testing**: Each layer can be tested independently
+6. **Dependency Injection**: Use service locator for dependency management
+
+### 4. Folder Structure Best Practices
+
+1. Keep feature-specific code within feature directories
+2. Use index.dart files for clean exports
+3. Separate widgets into logical subgroups
+4. Break down large files into smaller components
+5. Maintain consistent naming conventions
+
+This implementation provides a complete, production-ready feature following Clean Architecture principles with proper separation of concerns, testability, and maintainability. 
